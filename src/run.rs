@@ -6,7 +6,7 @@ pub fn run(code: Vec<Function>) -> Vec<String> {
     for line in code {
         if line.function.starts_with("Algoritmo") {
             output.push(format!(
-                "**** ejecutando {} ****",
+                "**** ejecutando {} ****\n",
                 line.args.first().unwrap()
             ));
         }
@@ -14,7 +14,10 @@ pub fn run(code: Vec<Function>) -> Vec<String> {
             output.push(escribir_type(line.args))
         }
         if line.function.starts_with("FinAlgoritmo") {
-            output.push("**** ejecucion finalizada ****".to_string());
+            output.push("**** ejecucion finalizada ****\n".to_string());
+
+            // finish algo, go to next one
+            break;
         }
     }
 

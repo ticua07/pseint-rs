@@ -1,3 +1,5 @@
+use std::error::Error;
+
 #[derive(Debug)]
 pub struct Function {
     pub function: String,
@@ -6,7 +8,7 @@ pub struct Function {
 
 // parser should return a result
 // err should be syntax error and Ok() should be Vec<Function>
-pub fn parse(input: String) -> Vec<Function> {
+pub fn parse(input: String) -> Result<Vec<Function>, Box<dyn Error>> {
     let lines: Vec<&str> = input
         .lines()
         .map(|x| x.trim())
@@ -18,14 +20,30 @@ pub fn parse(input: String) -> Vec<Function> {
     let mut _start_line: usize = 0;
     let mut _end_line: usize = 0;
     for (idx, line) in lines.iter().enumerate() {
-        let mut args: Vec<&str> = line.split_ascii_whitespace().collect();
+        let mut args: Vec<String> = line
+            .split_ascii_whitespace()
+            .map(|x| x.to_string())
+            .collect();
         args.remove(0);
 
         if line.starts_with("Algoritmo") && args.len() >= 1 {
             _start_line = idx;
+            commands.push(Function {
+                function: "Algoritmo".to_string(),
+                args: args.clone(),
+            });
             for algo_lines in _start_line..lines.len() {
-                if line.starts_with("FinAlgoritmo") && args.len() == 0 {
+                if lines[algo_lines].starts_with("FinAlgoritmo") {
+                    if commands.iter().any(|x| x.function == "FinAlgoritmo") {
+                        return Err("Multiple algorithms in same program").unwrap();
+                    }
+
                     _end_line = idx;
+
+                    commands.push(Function {
+                        function: "FinAlgoritmo".to_string(),
+                        args: vec![],
+                    })
                 }
 
                 if lines[algo_lines].starts_with("//") {
@@ -49,5 +67,5 @@ pub fn parse(input: String) -> Vec<Function> {
         }
     }
 
-    commands
+    Ok(commands)
 }

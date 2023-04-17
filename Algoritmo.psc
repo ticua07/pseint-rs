@@ -3,6 +3,8 @@ Algoritmo programa1
     Escribir "Chau";
 FinAlgoritmo
 
-Algoritmo programa3
-    Escribir "Hola mundo desde programa 3? wtf??";
-FinAlgoritmo
+
+// Try running 2 algorithms!
+// Algoritmo programa3
+//     Escribir "Hola mundo desde programa 3? wtf??";
+// FinAlgoritmo

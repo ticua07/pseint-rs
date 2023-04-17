@@ -8,7 +8,7 @@ fn main() {
 
     let code = parser::parse(input);
 
-    for output in run(code) {
+    for output in run(code.unwrap()) {
         print!("{output}");
     }
 }

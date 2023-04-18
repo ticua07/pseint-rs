@@ -3,6 +3,7 @@ use std::fs;
 use run::run;
 mod parser;
 mod run;
+mod utils;
 fn main() {
     let input = fs::read_to_string("Algoritmo.psc").unwrap();
 

@@ -1,6 +1,6 @@
-use crate::parser::Function;
+use crate::parser::Command;
 
-pub fn run(code: Vec<Function>) -> Vec<String> {
+pub fn run(code: Vec<Command>) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
 
     for line in code {
@@ -54,6 +54,6 @@ pub fn escribir_type(input: Vec<String>) -> String {
     {
         return string.to_string();
     } else {
-        return format!("{string}\n").to_string();
+        return format!("{string}\n");
     }
 }

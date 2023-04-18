@@ -48,7 +48,10 @@ pub fn escribir_type(input: Vec<String>) -> String {
 
     // Extract the parameter after the string
     let parameter = &args.get(space_index + 1..args.len()).unwrap_or("");
-    if parameter.to_lowercase() == "sin saltar;" {
+
+    if parameter.to_lowercase().ends_with("sin saltar")
+        || parameter.to_lowercase().ends_with("sin saltar;")
+    {
         return string.to_string();
     } else {
         return format!("{string}\n").to_string();

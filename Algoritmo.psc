@@ -1,6 +1,6 @@
 Algoritmo programa1
-    Escribir "Hola mundo" sin saltar;
-    Escribir "Chau";
+    Escribir "Hola mundo" sin saltar
+    Escribir "Chau" 
 FinAlgoritmo
 
 

@@ -6,24 +6,24 @@ use crate::{
 pub fn run(code: Vec<Command>, functions: Vec<Function>) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
     for line in code {
-        if line.function.starts_with("Algoritmo") {
+        if line.function.eq(&crate::parser::CommandType::Algoritmo) {
             output.push(format!(
                 "**** ejecutando {} ****\n",
                 line.args.first().unwrap()
             ));
         }
-        if line.function.starts_with("Escribir") {
+        if line.function.eq(&crate::parser::CommandType::Escribir) {
             output.push(escribir_type(&line.args)); // Corrected borrow error here
         }
 
-        if line.function.starts_with("FinAlgoritmo") {
+        if line.function.eq(&crate::parser::CommandType::FinAlgoritmo) {
             output.push("**** ejecucion finalizada ****\n".to_string());
 
             // finish algo, go to next one
             break;
         }
 
-        if line.function.starts_with("PRIV_RUN_FUNCTION") {
+        if line.function.eq(&crate::parser::CommandType::RunFunction) {
             for func in &functions {
                 if func.name == *line.args.first().unwrap() {
                     // Why 0 you may ask?

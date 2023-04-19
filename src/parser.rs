@@ -2,9 +2,17 @@ use std::error::Error;
 
 use crate::utils::{handle_functions, Function};
 
+#[derive(PartialEq, Debug, Clone)]
+pub enum CommandType {
+    Algoritmo,
+    FinAlgoritmo,
+    Escribir,
+    RunFunction,
+}
+
 #[derive(Debug, Clone)]
 pub struct Command {
-    pub function: String,
+    pub function: CommandType,
     pub args: Vec<String>,
 }
 
@@ -34,7 +42,7 @@ pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn Err
         if line.starts_with("Algoritmo") && !args.is_empty() {
             start_line = idx;
             commands.push(Command {
-                function: "Algoritmo".to_string(),
+                function: CommandType::Algoritmo,
                 args: args.clone(),
             });
 
@@ -59,12 +67,15 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
     // !!!: REWRITE TO USE ENUMS NOT STRINGS!
     for algo_line in lines.iter().skip(start_line) {
         if algo_line.starts_with("FinAlgoritmo") {
-            if commands.iter().any(|x| x.function == "FinAlgoritmo") {
+            if commands
+                .iter()
+                .any(|x| x.function == CommandType::FinAlgoritmo)
+            {
                 return Err("Multiple algorithms in same program").unwrap();
             }
 
             commands.push(Command {
-                function: "FinAlgoritmo".to_string(),
+                function: CommandType::FinAlgoritmo,
                 args: vec![],
             })
         }
@@ -82,7 +93,7 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
             args.remove(0);
 
             commands.push(Command {
-                function: "Escribir".to_string(),
+                function: CommandType::Escribir,
                 args,
             })
         }
@@ -93,7 +104,7 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
             let args: Vec<String> = algo_line.split("()").map(|x| x.to_string()).collect();
 
             commands.push(Command {
-                function: "PRIV_RUN_FUNCTION".to_string(),
+                function: CommandType::RunFunction,
                 args: vec![args.first().unwrap().to_owned()],
             })
         }

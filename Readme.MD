@@ -6,9 +6,9 @@ Basic implementation of Pseint compiler in rust
 
 - [x] Functions
 - [x] Print
-- [] Variables (going to be a tough one 😅)
-- [] Function arguments
-- [] Function return
+- [ ] Variables (going to be a tough one 😅)
+- [ ] Function arguments
+- [ ] Function return
 
 
 # Credits

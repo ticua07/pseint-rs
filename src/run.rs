@@ -30,7 +30,11 @@ pub fn run(code: Vec<Command>, functions: Vec<Function>) -> Vec<String> {
                     // Well basically only the function code is sent
                     // so function starts at 0
                     // took me longer than I want to admit to figure it out
-                    let func_code = parse_commands(&func.body, 0);
+                    let (func_code, errors) = parse_commands(&func.body, 0);
+
+                    if !errors.is_empty() {
+                        return errors;
+                    }
 
                     let mut func_output = run(func_code, functions.clone());
 

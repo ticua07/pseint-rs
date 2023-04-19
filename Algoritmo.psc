@@ -1,9 +1,17 @@
 Funcion hola ( var1, var2 )
+    Definir variablefuncion Como Caracter;
+
     Escribir "Hola mundo123";
 FinFuncion
 
 
 Algoritmo programa1
+    
+    Definir hola,mundo Como Caracter;
+	Definir numerofloat Como Real;
+	Definir booleano Como Logico;
+	Definir suma Como Entero;
+
     Escribir "Hola mundo"
     hola();
     hola2();

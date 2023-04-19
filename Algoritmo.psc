@@ -12,7 +12,9 @@ Algoritmo programa1
 	Definir booleano Como Logico;
 	Definir suma Como Entero;
 
-    suma <- false;
+    booleano <- false;
+
+    suma <- 123;
 
     Escribir "Hola mundo"
     hola();

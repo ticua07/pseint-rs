@@ -71,7 +71,7 @@ Instead of running the same code to parse functions, algos
 just run this function with the children inside the command block
 */
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VariableType {
     Text,  // String
     Float, // float i32
@@ -79,7 +79,7 @@ pub enum VariableType {
     Int,   // i32
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VariableContent {
     Text(String),
     Float(f32),
@@ -87,7 +87,7 @@ pub enum VariableContent {
     Int(i32),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub variable_name: String,
     pub variable_type: VariableType,
@@ -155,9 +155,9 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, 
 
             let variable_type = match psc_variable_type.as_ref() {
                 "Caracter" => VariableType::Text,
+                "Entero" => VariableType::Int,
                 "Real" => VariableType::Float,
                 "Logico" => VariableType::Bool,
-                "Entero" => VariableType::Int,
                 _ => {
                     errors.push(format!(
                         "Error: Unknown variable type \"{psc_variable_type}\""
@@ -171,28 +171,43 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, 
                     variable_name: var,
                     variable_type: variable_type.clone(),
                     content: None, // initialize variable empty
-                })
+                });
             }
             // println!("{:?} are type {variable_type}", variables_to_define);
         }
 
+        // check if assignment is happening {var} <- content
         let variable_assignation = &algo_line.splitn(2, "<-").collect::<Vec<&str>>();
         if variable_assignation.len() == 2 {
-            let variable = variable_assignation[0].trim();
+            let variable_name = variable_assignation[0].trim();
             let value = variable_assignation[1].trim().trim_end_matches(";");
 
-            let variable_content = parse_variable_value(value).unwrap();
+            let variable_type = parse_variable_value(value).unwrap();
 
-            println!(
-                "tried to assign type {:?} to {}",
-                variable_content, variable
-            )
+            for (idx, var) in &mut variables.to_owned().iter().enumerate() {
+                if var.variable_name == variable_name {
+                    if var.variable_type
+                        == convert_variable_content_to_variable_type(&variable_type)
+                    {
+                        variables[idx].content = Some(variable_type.clone());
+                    }
+                }
+            }
         }
     }
 
-    // println!("variables: {:#?}", variables);
+    println!("variables: {:#?}", variables);
 
     (commands, errors)
+}
+fn convert_variable_content_to_variable_type(content: &VariableContent) -> VariableType {
+    match content {
+        VariableContent::Text(_) => VariableType::Text,
+        // remember always to check for int first, otherwise it will always return float
+        VariableContent::Int(_) => VariableType::Int,
+        VariableContent::Float(_) => VariableType::Float,
+        VariableContent::Bool(_) => VariableType::Bool,
+    }
 }
 
 fn parse_variable_value(value: &str) -> Result<VariableContent, Box<dyn std::error::Error>> {
@@ -203,10 +218,10 @@ fn parse_variable_value(value: &str) -> Result<VariableContent, Box<dyn std::err
         // If no, try to parse the value into different data types
 
         value
-            .parse::<f32>()
-            .map(VariableContent::Float)
+            .parse::<i32>()
+            .map(VariableContent::Int)
             .or_else(|_| value.parse::<bool>().map(VariableContent::Bool))
-            .or_else(|_| value.parse::<i32>().map(VariableContent::Int))
+            .or_else(|_| value.parse::<f32>().map(VariableContent::Float))
             .or_else(|_| Err(format!("Variable type doesn't match {}'s type", value)).unwrap())
         // change unwrap_or_else to a function
     };

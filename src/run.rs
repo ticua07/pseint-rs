@@ -1,8 +1,10 @@
-use crate::parser::Command;
+use crate::{
+    parser::{parse_commands, Command},
+    utils::Function,
+};
 
-pub fn run(code: Vec<Command>) -> Vec<String> {
+pub fn run(code: Vec<Command>, functions: Vec<Function>) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
-
     for line in code {
         if line.function.starts_with("Algoritmo") {
             output.push(format!(
@@ -11,13 +13,32 @@ pub fn run(code: Vec<Command>) -> Vec<String> {
             ));
         }
         if line.function.starts_with("Escribir") {
-            output.push(escribir_type(line.args))
+            output.push(escribir_type(&line.args)); // Corrected borrow error here
         }
+
         if line.function.starts_with("FinAlgoritmo") {
             output.push("**** ejecucion finalizada ****\n".to_string());
 
             // finish algo, go to next one
             break;
+        }
+
+        if line.function.starts_with("PRIV_RUN_FUNCTION") {
+            for func in &functions {
+                if func.name == *line.args.first().unwrap() {
+                    // Why 0 you may ask?
+                    // Well basically only the function code is sent
+                    // so function starts at 0
+                    // took me longer than I want to admit to figure it out
+                    let func_code = parse_commands(&func.body, 0);
+
+                    let mut func_output = run(func_code, functions.clone());
+
+                    output.append(&mut func_output);
+
+                    // output.push(func_output.join("\n").to_string());
+                }
+            }
         }
     }
 
@@ -26,7 +47,7 @@ pub fn run(code: Vec<Command>) -> Vec<String> {
 
 // Handle quotation mark
 // handle if output should have newline or not
-pub fn escribir_type(input: Vec<String>) -> String {
+pub fn escribir_type(input: &Vec<String>) -> String {
     let args: String = input.join(" ");
     // Find the index of the first double quote
     let start_quote_index = args.find('"').unwrap_or(0);

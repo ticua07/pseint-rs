@@ -1,16 +1,18 @@
 Funcion hola ( var1, var2 )
-    Escribir "Hola mundo";
+    Escribir "Hola mundo123";
 FinFuncion
 
 
 Algoritmo programa1
-    Escribir "Hola mundo" sin saltar
-    Escribir "Chau" 
+    Escribir "Hola mundo"
+    hola();
+    hola2();
 FinAlgoritmo
 
 
 Funcion hola2 ()
-    Escribir "Hola mundo";
+    Escribir "Hola2" sin saltar;
+    Escribir "Hola3";
 FinFuncion
 
 // Try running 2 algorithms!

@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use crate::utils::handle_functions;
+use crate::utils::{handle_functions, Function};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Command {
     pub function: String,
     pub args: Vec<String>,
@@ -10,16 +10,16 @@ pub struct Command {
 
 // parser should return a result
 // err should be syntax error and Ok() should be Vec<Command>
-pub fn parse(input: String) -> Result<Vec<Command>, Box<dyn Error>> {
-    let lines: Vec<&str> = input
+pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn Error>> {
+    let lines: Vec<String> = input
         .lines()
-        .map(|x| x.trim())
+        .map(|x| x.trim().to_string())
         .filter(|x| !x.is_empty())
         .collect();
 
     let mut commands: Vec<Command> = Vec::new();
 
-    handle_functions(&lines);
+    let functions = handle_functions(&lines);
 
     let mut start_line: usize;
     let mut _end_line: usize;
@@ -44,7 +44,7 @@ pub fn parse(input: String) -> Result<Vec<Command>, Box<dyn Error>> {
         }
     }
 
-    Ok(commands)
+    Ok((commands, functions))
 }
 
 /*
@@ -53,9 +53,10 @@ Instead of running the same code to parse functions, algos
 just run this function with the children inside the command block
 
 */
-pub fn parse_commands(lines: &Vec<&str>, start_line: usize) -> Vec<Command> {
+pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
     let mut commands: Vec<Command> = Vec::new();
 
+    // !!!: REWRITE TO USE ENUMS NOT STRINGS!
     for algo_lines in start_line..lines.len() {
         if lines[algo_lines].starts_with("FinAlgoritmo") {
             if commands.iter().any(|x| x.function == "FinAlgoritmo") {
@@ -85,7 +86,23 @@ pub fn parse_commands(lines: &Vec<&str>, start_line: usize) -> Vec<Command> {
                 args: args,
             })
         }
+
+        if lines[algo_lines].ends_with("();")
+            || lines[algo_lines].ends_with("()") && !lines[algo_lines].starts_with("Funcion")
+        {
+            let args: Vec<String> = lines[algo_lines]
+                .split("()")
+                .map(|x| x.to_string())
+                .collect();
+
+            commands.push(Command {
+                function: "PRIV_RUN_FUNCTION".to_string(),
+                args: vec![args.first().unwrap().to_owned()],
+            })
+        }
     }
+
+    // println!("commands: {:#?}", commands);
 
     commands
 }

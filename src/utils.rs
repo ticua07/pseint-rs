@@ -1,39 +1,62 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Function {
-    name: String,
-    parameters: Vec<String>,
-    body: String,
+    pub name: String,
+    pub parameters: Vec<String>,
+    pub body: Vec<String>,
+    pub start: usize,
+    pub end: usize,
 }
 
-pub fn handle_functions(lines: &Vec<&str>) {
+pub fn handle_functions(lines: &Vec<String>) -> Vec<Function> {
     let mut functions: Vec<Function> = Vec::new();
+
+    let mut start_line: usize;
 
     for (idx, line) in lines.iter().enumerate() {
         if line.starts_with("Funcion") {
-            // let mut args: Vec<String> = line
-            //     .split_ascii_whitespace()
-            //     .map(|x| x.to_string())
-            //     .collect();
-            // args.remove(0);
+            start_line = idx;
 
             if let Some((function_name, function_params)) = line.split_once('(') {
-                let function_params: Vec<String> = function_params
+                let args: Vec<String> = function_params
                     .trim_end_matches(')')
                     .split(',')
                     .map(|s| s.trim().to_string())
                     .collect();
-                functions.push(Function {
-                    name: function_name
-                        .split_ascii_whitespace()
-                        .last()
-                        .unwrap() // !: HANDLE LATER
-                        .trim()
-                        .to_string(),
-                    parameters: function_params,
-                    body: String::new(),
-                });
+
+                let mut body: Vec<String> = Vec::new();
+
+                for func_lines in start_line..lines.len() {
+                    if lines[func_lines].starts_with("FinFuncion") {
+                        // don't forget to set the FinFuncion actual command
+                        body.push(lines[func_lines].to_string());
+                        functions.push(Function {
+                            name: function_name
+                                .split_ascii_whitespace()
+                                .last()
+                                .unwrap() // !: HANDLE LATER
+                                .trim()
+                                .to_string(),
+                            parameters: args.clone(),
+                            body: body.clone(),
+                            start: start_line,
+                            end: func_lines,
+                        });
+                        // Break here, so that it doesn't
+                        // catch other FinFuncion
+
+                        body.clear();
+
+                        break;
+                    } else {
+                        body.push(lines[func_lines].to_string())
+                    }
+                }
             }
         }
     }
-    println!("found func: {:#?}", functions);
+
+    functions
 }
+
+// let test = parser::parse_commands(&lines, start_line);
+// println!("{:#?}", test);

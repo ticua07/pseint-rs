@@ -7,7 +7,7 @@ pub struct Function {
     pub end: usize,
 }
 
-pub fn handle_functions(lines: &Vec<String>) -> Vec<Function> {
+pub fn handle_functions(lines: &[String]) -> Vec<Function> {
     let mut functions: Vec<Function> = Vec::new();
 
     let mut start_line: usize;
@@ -25,10 +25,10 @@ pub fn handle_functions(lines: &Vec<String>) -> Vec<Function> {
 
                 let mut body: Vec<String> = Vec::new();
 
-                for func_lines in start_line..lines.len() {
+                for (func_lines, value) in lines.iter().enumerate().skip(start_line) {
                     if lines[func_lines].starts_with("FinFuncion") {
                         // don't forget to set the FinFuncion actual command
-                        body.push(lines[func_lines].to_string());
+                        body.push(value.to_string());
                         functions.push(Function {
                             name: function_name
                                 .split_ascii_whitespace()
@@ -48,7 +48,7 @@ pub fn handle_functions(lines: &Vec<String>) -> Vec<Function> {
 
                         break;
                     } else {
-                        body.push(lines[func_lines].to_string())
+                        body.push(value.to_string())
                     }
                 }
             }

@@ -73,8 +73,8 @@ pub fn escribir_type(input: &[String]) -> String {
     if parameter.to_lowercase().ends_with("sin saltar")
         || parameter.to_lowercase().ends_with("sin saltar;")
     {
-         string.to_string()
+        string.to_string()
     } else {
-         format!("{string}\n")
+        format!("{string}\n")
     }
 }

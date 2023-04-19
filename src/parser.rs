@@ -57,8 +57,8 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
     let mut commands: Vec<Command> = Vec::new();
 
     // !!!: REWRITE TO USE ENUMS NOT STRINGS!
-    for algo_lines in start_line..lines.len() {
-        if lines[algo_lines].starts_with("FinAlgoritmo") {
+    for algo_line in lines.iter().skip(start_line) {
+        if algo_line.starts_with("FinAlgoritmo") {
             if commands.iter().any(|x| x.function == "FinAlgoritmo") {
                 return Err("Multiple algorithms in same program").unwrap();
             }
@@ -69,13 +69,13 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
             })
         }
 
-        if lines[algo_lines].starts_with("//") {
+        if algo_line.starts_with("//") {
             // if comment
             continue;
         }
 
-        if lines[algo_lines].starts_with("Escribir") {
-            let mut args: Vec<String> = lines[algo_lines]
+        if algo_line.starts_with("Escribir") {
+            let mut args: Vec<String> = algo_line
                 .split_ascii_whitespace()
                 .map(|x| x.to_string())
                 .collect();
@@ -87,13 +87,10 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
             })
         }
 
-        if lines[algo_lines].ends_with("();")
-            || lines[algo_lines].ends_with("()") && !lines[algo_lines].starts_with("Funcion")
+        if algo_line.ends_with("();")
+            || algo_line.ends_with("()") && !algo_line.starts_with("Funcion")
         {
-            let args: Vec<String> = lines[algo_lines]
-                .split("()")
-                .map(|x| x.to_string())
-                .collect();
+            let args: Vec<String> = algo_line.split("()").map(|x| x.to_string()).collect();
 
             commands.push(Command {
                 function: "PRIV_RUN_FUNCTION".to_string(),

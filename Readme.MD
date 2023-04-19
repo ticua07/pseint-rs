@@ -2,7 +2,16 @@
 
 Basic implementation of Pseint compiler in rust
 
-## Credits
+# Working
+
+- [x] Functions
+- [x] Print
+- [] Variables (going to be a tough one 😅)
+- [] Function arguments
+- [] Function return
+
+
+# Credits
 
 Creator of pseint
 

@@ -12,6 +12,8 @@ Algoritmo programa1
 	Definir booleano Como Logico;
 	Definir suma Como Entero;
 
+    suma <- false;
+
     Escribir "Hola mundo"
     hola();
     hola2();

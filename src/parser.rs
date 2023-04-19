@@ -175,9 +175,41 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, 
             }
             // println!("{:?} are type {variable_type}", variables_to_define);
         }
+
+        let variable_assignation = &algo_line.splitn(2, "<-").collect::<Vec<&str>>();
+        if variable_assignation.len() == 2 {
+            let variable = variable_assignation[0].trim();
+            let value = variable_assignation[1].trim().trim_end_matches(";");
+
+            let variable_content = parse_variable_value(value).unwrap();
+
+            println!(
+                "tried to assign type {:?} to {}",
+                variable_content, variable
+            )
+        }
     }
 
     // println!("variables: {:#?}", variables);
 
     (commands, errors)
+}
+
+fn parse_variable_value(value: &str) -> Result<VariableContent, Box<dyn std::error::Error>> {
+    let variable_content = if value.starts_with('\"') && value.ends_with('\"') {
+        // If yes, create Text variant without the quotes
+        Ok(VariableContent::Text(value[1..value.len() - 1].to_string()))
+    } else {
+        // If no, try to parse the value into different data types
+
+        value
+            .parse::<f32>()
+            .map(VariableContent::Float)
+            .or_else(|_| value.parse::<bool>().map(VariableContent::Bool))
+            .or_else(|_| value.parse::<i32>().map(VariableContent::Int))
+            .or_else(|_| Err(format!("Variable type doesn't match {}'s type", value)).unwrap())
+        // change unwrap_or_else to a function
+    };
+
+    variable_content
 }

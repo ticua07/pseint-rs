@@ -1,16 +1,14 @@
-use std::{fs, vec};
+use std::{fs};
 
-use parser::parse_commands;
 use run::run;
 
-use crate::utils::Function;
 mod parser;
 mod run;
 mod utils;
 fn main() {
     let input = fs::read_to_string("Algoritmo.psc").unwrap();
 
-    let code = parser::parse(input.clone()).unwrap();
+    let code = parser::parse(input).unwrap();
 
     for output in run(code.0, code.1) {
         print!("{output}");

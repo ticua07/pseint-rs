@@ -47,7 +47,7 @@ pub fn run(code: Vec<Command>, functions: Vec<Function>) -> Vec<String> {
 
 // Handle quotation mark
 // handle if output should have newline or not
-pub fn escribir_type(input: &Vec<String>) -> String {
+pub fn escribir_type(input: &[String]) -> String {
     let args: String = input.join(" ");
     // Find the index of the first double quote
     let start_quote_index = args.find('"').unwrap_or(0);
@@ -73,8 +73,8 @@ pub fn escribir_type(input: &Vec<String>) -> String {
     if parameter.to_lowercase().ends_with("sin saltar")
         || parameter.to_lowercase().ends_with("sin saltar;")
     {
-        return string.to_string();
+         string.to_string()
     } else {
-        return format!("{string}\n");
+         format!("{string}\n")
     }
 }

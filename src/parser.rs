@@ -31,7 +31,7 @@ pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn Err
             .collect();
         args.remove(0);
 
-        if line.starts_with("Algoritmo") && args.len() >= 1 {
+        if line.starts_with("Algoritmo") && !args.is_empty() {
             start_line = idx;
             commands.push(Command {
                 function: "Algoritmo".to_string(),
@@ -83,7 +83,7 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> Vec<Command> {
 
             commands.push(Command {
                 function: "Escribir".to_string(),
-                args: args,
+                args,
             })
         }
 

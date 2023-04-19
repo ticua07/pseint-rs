@@ -6,10 +6,10 @@ Basic implementation of Pseint compiler in rust
 
 - [x] Functions
 - [x] Print
+- [ ] Error highlighting
 - [ ] Variables (going to be a tough one 😅)
 - [ ] Function arguments
 - [ ] Function return
-
 
 # Credits
 

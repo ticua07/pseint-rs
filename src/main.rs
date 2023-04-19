@@ -1,4 +1,4 @@
-use std::{fs};
+use std::fs;
 
 use run::run;
 
@@ -8,10 +8,14 @@ mod utils;
 fn main() {
     let input = fs::read_to_string("Algoritmo.psc").unwrap();
 
-    let code = parser::parse(input).unwrap();
+    match parser::parse(input) {
+        Ok(code) => {
+            for output in run(code.0, code.1) {
+                print!("{output}");
+            }
+        }
 
-    for output in run(code.0, code.1) {
-        print!("{output}");
+        Err(_) => println!("PSC sintaxis error"),
     }
 }
 

@@ -1,31 +1,29 @@
 Funcion hola ( var1, var2 )
     Definir variablefuncion Como Caracter;
+    variablefuncion <- "varfunc";
 
-    Escribir "Hola mundo123";
+    Escribir "Hola mundo123", variablefuncion;
 FinFuncion
 
 
 Algoritmo programa1
     
-    Definir hola,mundo Como Caracter;
-	Definir numerofloat Como Real;
+    Definir caracter1,caracter2 Como Caracter;
+	Definir float Como Real;
 	Definir booleano Como Logico;
 	Definir suma Como Entero;
+
+    caracter1 <- "Ticua07";
 
     booleano <- false;
 
     suma <- 123;
 
-    Escribir "Hola mundo"
+    Escribir "Hola mundo", caracter1;
     hola();
     hola2();
 FinAlgoritmo
 
-
-Funcion hola2 ()
-    Escribir "Hola2" sin saltar;
-    Escribir "Hola3";
-FinFuncion
 
 // Try running 2 algorithms!
 // Algoritmo programa3

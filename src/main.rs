@@ -10,7 +10,7 @@ fn main() {
 
     match parser::parse(input) {
         Ok(code) => {
-            for output in run(code.0, code.1) {
+            for output in run(code.0, code.1, code.2) {
                 print!("{output}");
             }
         }

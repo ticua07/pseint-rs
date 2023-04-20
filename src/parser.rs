@@ -24,7 +24,9 @@ pub struct Command {
 
 // parser should return a result
 // err should be syntax error and Ok() should be Vec<Command>
-pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn std::error::Error>> {
+pub fn parse(
+    input: String,
+) -> Result<(Vec<Command>, Vec<Function>, Vec<Variable>), Box<dyn std::error::Error>> {
     let lines: Vec<String> = input
         .lines()
         .map(|x| x.trim().to_string())
@@ -32,6 +34,7 @@ pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn std
         .collect();
 
     let mut commands: Vec<Command> = Vec::new();
+    let mut variables: Vec<Variable> = Vec::new();
 
     let functions = handle_functions(&lines);
 
@@ -52,7 +55,13 @@ pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn std
                 args: args.clone(),
             });
 
-            let (mut parsed_block, errors) = parse_commands(&lines, start_line);
+            let (mut parsed_block, errors, local_variables) = parse_commands(&lines, start_line);
+
+            for var in local_variables {
+                if !variables.contains(&var) {
+                    variables.push(var)
+                }
+            }
 
             if !errors.is_empty() {
                 return Err(errors.join("\n").to_string()).unwrap();
@@ -62,7 +71,7 @@ pub fn parse(input: String) -> Result<(Vec<Command>, Vec<Function>), Box<dyn std
         }
     }
 
-    Ok((commands, functions))
+    Ok((commands, functions, variables))
 }
 
 /*
@@ -94,7 +103,10 @@ pub struct Variable {
     pub content: Option<VariableContent>,
 }
 
-pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, Vec<String>) {
+pub fn parse_commands(
+    lines: &Vec<String>,
+    start_line: usize,
+) -> (Vec<Command>, Vec<String>, Vec<Variable>) {
     let mut commands: Vec<Command> = Vec::new();
     let mut variables: Vec<Variable> = Vec::new();
     let mut errors: Vec<String> = Vec::new();
@@ -126,9 +138,12 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, 
                 .collect();
             args.remove(0);
 
+            // Passing the arg as a string, so it's easier to manipulate later
+            let string_args: Vec<String> = vec![args.join(" ")];
+
             commands.push(Command {
                 function: CommandType::Escribir,
-                args,
+                args: string_args,
             })
         }
 
@@ -196,9 +211,7 @@ pub fn parse_commands(lines: &Vec<String>, start_line: usize) -> (Vec<Command>, 
         }
     }
 
-    println!("variables: {:#?}", variables);
-
-    (commands, errors)
+    (commands, errors, variables)
 }
 fn convert_variable_content_to_variable_type(content: &VariableContent) -> VariableType {
     match content {

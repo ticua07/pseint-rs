@@ -1,7 +1,4 @@
-enum Keywords {
-    Definir,
-    Caracter,
-}
+use std::{iter::Peekable, str::Chars};
 
 pub struct Lexer {}
 
@@ -10,40 +7,40 @@ impl Lexer {
         ch.is_alphanumeric()
     }
 
-    fn parse_alphanumeric(code: &String, previous_idx: usize) -> (usize, String) {
-        let mut idx = previous_idx;
+    fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
+        let mut curr_char = initial_char;
         let mut string = String::new();
-        let mut curr_char = code.chars().nth(idx).expect("a");
 
         while Lexer::is_text(curr_char) {
             string.push(curr_char);
-            idx += 1;
-            curr_char = code.chars().nth(idx).unwrap_or(' ');
+            curr_char = chars.next().unwrap_or(' ');
         }
 
         let token = format!("string-{}", string);
-        return (idx, token);
 
-        // tokens.push(format!("string-{}", string))
+        return token;
     }
 
     pub fn lex(code: String) {
-        // add or substract 1 to remove "Algoritmo" or "FinAlgoritmo"
         let mut tokens: Vec<String> = Vec::new();
-        let mut idx: usize = 0;
+        let mut chars = code.chars().peekable();
 
-        while idx < code.len() {
-            let curr_char = code.chars().nth(idx).unwrap();
+        // if iterator still has content
+        while chars.peek().is_some() {
+            let curr_char = chars.next().unwrap();
+
             match curr_char {
                 '=' => tokens.push("igual".to_string()),
+
                 ch if Lexer::is_text(ch) => {
-                    let (new_idx, token) = Lexer::parse_alphanumeric(&code, idx);
-                    idx = new_idx;
+                    let token = Lexer::parse_alphanumeric(ch, &mut chars);
                     tokens.push(token);
                 }
-                _ => {}
+
+                _ => {
+                    // should error out, but we can ignore it for now
+                }
             }
-            idx += 1;
         }
 
         println!("{:?}", tokens);

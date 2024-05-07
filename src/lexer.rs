@@ -3,20 +3,31 @@ use std::{iter::Peekable, str::Chars};
 pub struct Lexer {}
 
 impl Lexer {
-    fn is_text(ch: char) -> bool {
-        ch.is_alphanumeric()
-    }
-
     fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
-        while Lexer::is_text(curr_char) {
+        while curr_char.is_alphanumeric() {
             string.push(curr_char);
-            curr_char = chars.next().unwrap_or(' ');
+            curr_char = chars.next().unwrap();
         }
 
-        let token = format!("string-{}", string);
+        let token = format!("identificador {}", string);
+
+        return token;
+    }
+
+    fn parse_string(quote: char, chars: &mut Peekable<Chars>) -> String {
+        // skips first quote
+        let mut curr_char = chars.next().unwrap();
+        let mut string = String::new();
+
+        while curr_char != quote {
+            string.push(curr_char);
+            curr_char = chars.next().unwrap();
+        }
+
+        let token = format!("string '{}'", string);
 
         return token;
     }
@@ -30,9 +41,19 @@ impl Lexer {
             let curr_char = chars.next().unwrap();
 
             match curr_char {
-                '=' => tokens.push("igual".to_string()),
+                '=' => tokens.push("signo igual".to_string()),
 
-                ch if Lexer::is_text(ch) => {
+                '\"' => {
+                    let token = Lexer::parse_string('\"', &mut chars);
+                    tokens.push(token);
+                }
+
+                '\'' => {
+                    let token = Lexer::parse_string('\'', &mut chars);
+                    tokens.push(token);
+                }
+
+                ch if ch.is_alphanumeric() => {
                     let token = Lexer::parse_alphanumeric(ch, &mut chars);
                     tokens.push(token);
                 }

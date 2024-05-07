@@ -14,7 +14,9 @@ fn main() {
     // for line in code.split(";") {
     // Lexer::lex(line.to_string());
     // }
-    Lexer::lex("Definir algoritmo1 como Caracter".to_string());
+
+    Lexer::lex("Definir algoritmo1 como Caracter;".to_string());
+    Lexer::lex("variable = 'hola';".to_string());
 }
 
 // #[cfg(test)]

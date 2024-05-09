@@ -1,9 +1,13 @@
 use std::{iter::Peekable, str::Chars};
 
+use strum::IntoEnumIterator;
+
+use crate::tokens::{convert_to_keyword, Keyword, Token};
+
 pub struct Lexer {}
 
 impl Lexer {
-    fn parse_numeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
+    fn parse_numeric(initial_char: char, chars: &mut Peekable<Chars>) -> Token {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
@@ -18,12 +22,12 @@ impl Lexer {
             curr_char = chars.next().unwrap();
         }
 
-        let token = format!("numero {}", string);
+        let token = Token::Numero(string.parse().unwrap());
 
         return token;
     }
 
-    fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
+    fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> Token {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
@@ -38,12 +42,10 @@ impl Lexer {
             curr_char = chars.next().unwrap();
         }
 
-        let token = format!("identificador {}", string);
-
-        return token;
+        convert_to_keyword(string)
     }
 
-    fn parse_string(quote: char, chars: &mut Peekable<Chars>) -> String {
+    fn parse_string(quote: char, chars: &mut Peekable<Chars>) -> Token {
         // skips first quote
         let mut curr_char = chars.next().unwrap();
         let mut string = String::new();
@@ -53,12 +55,12 @@ impl Lexer {
             curr_char = chars.next().unwrap();
         }
 
-        let token = format!("string '{}'", string);
+        let token = Token::String(string);
         return token;
     }
 
     pub fn lex(code: String) {
-        let mut tokens: Vec<String> = Vec::new();
+        let mut tokens: Vec<Token> = Vec::new();
         let mut chars = code.chars().peekable();
 
         // if iterator still has content
@@ -66,7 +68,7 @@ impl Lexer {
             let curr_char = chars.next().unwrap();
 
             match curr_char {
-                '=' => tokens.push("signo igual".to_string()),
+                '=' => tokens.push(Token::Igual),
 
                 '\"' => {
                     let token = Lexer::parse_string('\"', &mut chars);
@@ -77,6 +79,7 @@ impl Lexer {
                     let token = Lexer::parse_string('\'', &mut chars);
                     tokens.push(token);
                 }
+
                 ch if ch.is_numeric() => {
                     let token = Lexer::parse_numeric(ch, &mut chars);
                     tokens.push(token);

@@ -4,6 +4,7 @@ use crate::lexer::Lexer;
 
 mod file;
 mod lexer;
+mod tokens;
 
 fn main() {
     let content = file::open_file("./algorithm.psc");
@@ -15,8 +16,10 @@ fn main() {
     // Lexer::lex(line.to_string());
     // }
 
-    Lexer::lex("Definir algoritmo1 como Caracter;".to_string());
-    Lexer::lex("variable = 'hola';".to_string());
+    Lexer::lex("Definir algoritmo1 Como Caracter;".to_string());
+    Lexer::lex("variable = 'hola' hola".to_string());
+    Lexer::lex("1 + 1".to_string());
+    Lexer::lex("variable = 123".to_string());
 }
 
 // #[cfg(test)]

@@ -3,12 +3,38 @@ use std::{iter::Peekable, str::Chars};
 pub struct Lexer {}
 
 impl Lexer {
+    fn parse_numeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
+        let mut curr_char = initial_char;
+        let mut string = String::new();
+
+        while curr_char.is_numeric() {
+            string.push(curr_char);
+
+            // No more characters, this mean the line of code has reached the end.
+            if chars.peek().is_none() {
+                break;
+            };
+
+            curr_char = chars.next().unwrap();
+        }
+
+        let token = format!("numero {}", string);
+
+        return token;
+    }
+
     fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> String {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
         while curr_char.is_alphanumeric() {
             string.push(curr_char);
+
+            // No more characters, this mean the line of code has reached the end.
+            if chars.peek().is_none() {
+                break;
+            };
+
             curr_char = chars.next().unwrap();
         }
 
@@ -28,7 +54,6 @@ impl Lexer {
         }
 
         let token = format!("string '{}'", string);
-
         return token;
     }
 
@@ -50,6 +75,10 @@ impl Lexer {
 
                 '\'' => {
                     let token = Lexer::parse_string('\'', &mut chars);
+                    tokens.push(token);
+                }
+                ch if ch.is_numeric() => {
+                    let token = Lexer::parse_numeric(ch, &mut chars);
                     tokens.push(token);
                 }
 

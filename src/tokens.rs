@@ -7,6 +7,16 @@ pub enum Token {
     None,
 
     Igual, // = y <-
+
+    MenorA,
+    MenorOIgual,
+    MayorA,
+    MayorOIgual,
+    Suma,
+    Resta,
+    Multiplicacion,
+    Division,
+
     Numero(u32),
     String(String),
     EOL, // ';'

@@ -69,6 +69,32 @@ impl Lexer {
 
             match curr_char {
                 '=' => tokens.push(Token::Igual),
+                '+' => tokens.push(Token::Suma),
+                '-' => tokens.push(Token::Resta),
+                '*' => tokens.push(Token::Multiplicacion),
+                '/' => tokens.push(Token::Division),
+
+                '<' => {
+                    let next_char = chars.peek().unwrap_or(&' ');
+
+                    if next_char == &'-' {
+                        tokens.push(Token::Igual);
+                    } else if next_char == &'=' {
+                        tokens.push(Token::MenorOIgual)
+                    } else {
+                        tokens.push(Token::MenorA)
+                    }
+                }
+
+                '>' => {
+                    let next_char = chars.peek().unwrap_or(&' ');
+
+                    if next_char == &'=' {
+                        tokens.push(Token::MayorOIgual)
+                    } else {
+                        tokens.push(Token::MayorA)
+                    }
+                }
 
                 '\"' => {
                     let token = Lexer::parse_string('\"', &mut chars);

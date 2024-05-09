@@ -79,7 +79,9 @@ impl Lexer {
 
                     if next_char == &'-' {
                         tokens.push(Token::Igual);
+                        chars.next();
                     } else if next_char == &'=' {
+                        chars.next();
                         tokens.push(Token::MenorOIgual)
                     } else {
                         tokens.push(Token::MenorA)
@@ -90,7 +92,8 @@ impl Lexer {
                     let next_char = chars.peek().unwrap_or(&' ');
 
                     if next_char == &'=' {
-                        tokens.push(Token::MayorOIgual)
+                        tokens.push(Token::MayorOIgual);
+                        chars.next();
                     } else {
                         tokens.push(Token::MayorA)
                     }

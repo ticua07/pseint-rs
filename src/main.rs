@@ -20,6 +20,12 @@ fn main() {
     Lexer::lex("variable = 'hola' hola".to_string());
     Lexer::lex("1 + 1".to_string());
     Lexer::lex("variable = 123".to_string());
+    Lexer::lex("variable <- 123".to_string());
+
+    Lexer::lex("2 > 1".to_string());
+    Lexer::lex("1 < 2".to_string());
+    Lexer::lex("2 >= 2".to_string());
+    Lexer::lex("2 <= 2".to_string());
 }
 
 // #[cfg(test)]

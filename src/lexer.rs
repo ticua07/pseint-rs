@@ -1,8 +1,6 @@
 use std::{iter::Peekable, str::Chars};
 
-use strum::IntoEnumIterator;
-
-use crate::tokens::{convert_to_keyword, Keyword, Token};
+use crate::tokens::{convert_to_keyword, Token};
 
 pub struct Lexer {}
 
@@ -59,7 +57,7 @@ impl Lexer {
         return token;
     }
 
-    pub fn lex(code: String) {
+    pub fn lex(code: String) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
         let mut chars = code.chars().peekable();
 
@@ -126,6 +124,8 @@ impl Lexer {
         }
 
         println!("{:?}", tokens);
+
+        tokens
     }
 }
 

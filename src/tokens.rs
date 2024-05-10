@@ -2,7 +2,7 @@ use core::fmt;
 
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Debug, EnumIter)]
+#[derive(Debug, EnumIter, PartialEq)]
 pub enum Token {
     None,
 
@@ -28,7 +28,7 @@ pub enum Token {
     Instruccion(Keyword),
 }
 
-#[derive(Default, Debug, EnumIter)]
+#[derive(Default, Debug, EnumIter, PartialEq)]
 pub enum Keyword {
     // default trait needed for EnumIter
     #[default]
@@ -41,7 +41,7 @@ pub enum Keyword {
     Definir,
 }
 
-#[derive(Default, Debug, EnumIter)]
+#[derive(Default, Debug, EnumIter, PartialEq, Clone, Copy)]
 pub enum Type {
     // default trait needed for EnumIter
     #[default]
@@ -67,7 +67,7 @@ pub fn convert_to_keyword(text: String) -> Token {
         }
     }
 
-    return Token::Variable(text);
+    return Token::Identificador(text);
 }
 
 impl fmt::Display for Token {

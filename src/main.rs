@@ -19,6 +19,7 @@ fn main() {
     Lexer::lex("Definir algoritmo1 Como Caracter;".to_string());
     Lexer::lex("variable = 'hola' hola".to_string());
     Lexer::lex("1 + 1".to_string());
+    Lexer::lex("variable = ''".to_string());
     Lexer::lex("variable = 123".to_string());
     Lexer::lex("variable <- 123".to_string());
 

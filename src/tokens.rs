@@ -2,7 +2,7 @@ use core::fmt;
 
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Debug, EnumIter, PartialEq)]
+#[derive(Debug, EnumIter, PartialEq, Clone)]
 pub enum Token {
     None,
 
@@ -17,7 +17,7 @@ pub enum Token {
     Multiplicacion,
     Division,
 
-    Numero(u32),
+    Numero(i32),
     String(String),
     EOL, // ';'
 
@@ -26,9 +26,13 @@ pub enum Token {
     Variable(String),
     Tipo(Type),
     Instruccion(Keyword),
+    // El grupo o grouping serian los (), el contenido dentro de estos son mas tokens
+    Grupo(Vec<Token>),
+    AbrirParentesis,
+    CerrarParentesis,
 }
 
-#[derive(Default, Debug, EnumIter, PartialEq)]
+#[derive(Default, Debug, EnumIter, PartialEq, Clone)]
 pub enum Keyword {
     // default trait needed for EnumIter
     #[default]

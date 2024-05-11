@@ -13,7 +13,7 @@ impl Lexer {
             string.push(curr_char);
 
             // No more characters, this mean the line of code has reached the end.
-            if chars.peek().is_none() {
+            if chars.peek().is_none() || !chars.peek().unwrap().is_numeric() {
                 break;
             };
 
@@ -62,9 +62,7 @@ impl Lexer {
         let mut chars = code.chars().peekable();
 
         // if iterator still has content
-        while chars.peek().is_some() {
-            let curr_char = chars.next().unwrap();
-
+        while let Some(curr_char) = chars.next() {
             match curr_char {
                 '=' => tokens.push(Token::Igual),
                 '+' => tokens.push(Token::Suma),
@@ -96,6 +94,9 @@ impl Lexer {
                         tokens.push(Token::MayorA)
                     }
                 }
+
+                '(' => tokens.push(Token::AbrirParentesis),
+                ')' => tokens.push(Token::CerrarParentesis),
 
                 '\"' => {
                     let token = Lexer::parse_string('\"', &mut chars);

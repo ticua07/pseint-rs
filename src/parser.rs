@@ -6,8 +6,7 @@ pub fn shunting_yard(expression: Vec<Token>) -> Vec<Token> {
 
     for token in expression {
         match token {
-            Token::Numero(_) => queue.push(token),
-            Token::String(_) => queue.push(token),
+            Token::Numero(_) | Token::Float(_) | Token::String(_) => queue.push(token),
 
             Token::AbrirParentesis => stack.push(token),
             Token::Suma | Token::Resta => {
@@ -33,6 +32,8 @@ pub fn shunting_yard(expression: Vec<Token>) -> Vec<Token> {
             Token::MayorA | Token::MayorOIgual | Token::MenorA | Token::MenorOIgual => {
                 stack.push(token)
             }
+
+            Token::Comparacion => stack.push(token),
 
             Token::CerrarParentesis => {
                 let mut curr_char = stack.pop().unwrap();
@@ -92,6 +93,11 @@ impl CalcNode {
                     Token::Resta => return Some(Token::Numero(left - right)),
                     Token::Multiplicacion => return Some(Token::Numero(left * right)),
                     Token::Division => return Some(Token::Numero(left / right)),
+                    Token::Comparacion => return Some(Token::Boolean(left == right)),
+                    Token::MayorA => return Some(Token::Boolean(left > right)),
+                    Token::MayorOIgual => return Some(Token::Boolean(left >= right)),
+                    Token::MenorA => return Some(Token::Boolean(left < right)),
+                    Token::MenorOIgual => return Some(Token::Boolean(left <= right)),
                     _ => None,
                 }
             }
@@ -101,6 +107,7 @@ impl CalcNode {
 
                 match self.operator {
                     Token::Suma => return Some(Token::String(left + &right)),
+                    Token::Comparacion => return Some(Token::Boolean(left == right)),
                     _ => None,
                 }
             }
@@ -114,8 +121,7 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
 
     for token in tokens {
         match token {
-            Token::Numero(_) => stack.push(token),
-            Token::String(_) => stack.push(token),
+            Token::Numero(_) | Token::Float(_) | Token::String(_) => stack.push(token),
             operator => {
                 let right = stack.pop().unwrap();
                 let left = stack.pop().unwrap();

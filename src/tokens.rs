@@ -7,6 +7,7 @@ pub enum Token {
     None,
 
     Igual, // = y <-
+    Comparacion,
 
     MenorA,
     MenorOIgual,
@@ -18,7 +19,9 @@ pub enum Token {
     Division,
 
     Numero(i32),
+    Float(f32),
     String(String),
+    Boolean(bool),
     EOL, // ';'
 
     // Identificador es global, tiene que ser transformado a Variable o Instrucción

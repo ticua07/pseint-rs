@@ -9,20 +9,23 @@ impl Lexer {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
-        while curr_char.is_numeric() {
+        while curr_char.is_numeric() | curr_char.eq(&'.') {
             string.push(curr_char);
 
             // No more characters, this mean the line of code has reached the end.
-            if chars.peek().is_none() || !chars.peek().unwrap().is_numeric() {
+            let next_char = chars.peek();
+            if !next_char.is_some_and(|f| f.is_numeric() || f.eq(&'.')) {
                 break;
             };
 
             curr_char = chars.next().unwrap();
         }
 
-        let token = Token::Numero(string.parse().unwrap());
-
-        return token;
+        if string.matches(".").count() == 1 {
+            return Token::Float(string.parse().unwrap());
+        } else {
+            return Token::Numero(string.parse().unwrap());
+        }
     }
 
     fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> Token {
@@ -64,7 +67,17 @@ impl Lexer {
         // if iterator still has content
         while let Some(curr_char) = chars.next() {
             match curr_char {
-                '=' => tokens.push(Token::Igual),
+                '=' => {
+                    let next_char = chars.peek().unwrap_or(&' ');
+
+                    if next_char == &'=' {
+                        tokens.push(Token::Comparacion);
+                        chars.next();
+                    } else {
+                        tokens.push(Token::Igual)
+                    }
+                }
+
                 '+' => tokens.push(Token::Suma),
                 '-' => tokens.push(Token::Resta),
                 '*' => tokens.push(Token::Multiplicacion),
@@ -77,8 +90,8 @@ impl Lexer {
                         tokens.push(Token::Igual);
                         chars.next();
                     } else if next_char == &'=' {
+                        tokens.push(Token::MenorOIgual);
                         chars.next();
-                        tokens.push(Token::MenorOIgual)
                     } else {
                         tokens.push(Token::MenorA)
                     }

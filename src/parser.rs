@@ -6,7 +6,7 @@ pub fn shunting_yard(expression: Vec<Token>) -> Vec<Token> {
 
     for token in expression {
         match token {
-            Token::Numero(_) | Token::Float(_) | Token::String(_) => queue.push(token),
+            Token::Numero(..) | Token::Float(_) | Token::String(_) => queue.push(token),
 
             Token::AbrirParentesis => stack.push(token),
             Token::Suma | Token::Resta => {
@@ -71,11 +71,16 @@ impl CalcNode {
         None
     }
 
-    fn get_number_from_token(token: Token) -> Option<i32> {
-        if let Token::Numero(i) = token {
-            return Some(i);
+    fn get_number_from_token(token: Token) -> Option<(f32, bool)> {
+        if let Token::Numero(i, rounded) = token {
+            return Some((i, rounded));
         }
         None
+    }
+
+    fn calculate_operation(result: f32) -> Token {
+        let is_rounded = result.fract() == 0.0;
+        return Token::Numero(result, is_rounded);
     }
 
     pub fn calculate(self) -> Option<Token> {
@@ -84,15 +89,27 @@ impl CalcNode {
         }
 
         match self.left {
-            Token::Numero(_) => {
-                let left = CalcNode::get_number_from_token(self.left).unwrap();
-                let right = CalcNode::get_number_from_token(self.right).unwrap();
+            Token::Numero(_, _) => {
+                let (left, _) = CalcNode::get_number_from_token(self.left).unwrap();
+                let (right, _) = CalcNode::get_number_from_token(self.right).unwrap();
 
                 match self.operator {
-                    Token::Suma => return Some(Token::Numero(left + right)),
-                    Token::Resta => return Some(Token::Numero(left - right)),
-                    Token::Multiplicacion => return Some(Token::Numero(left * right)),
-                    Token::Division => return Some(Token::Numero(left / right)),
+                    Token::Suma => {
+                        let result = left + right;
+                        return Some(CalcNode::calculate_operation(result));
+                    }
+                    Token::Resta => {
+                        let result = left - right;
+                        return Some(CalcNode::calculate_operation(result));
+                    }
+                    Token::Multiplicacion => {
+                        let result = left * right;
+                        return Some(CalcNode::calculate_operation(result));
+                    }
+                    Token::Division => {
+                        let result = left / right;
+                        return Some(CalcNode::calculate_operation(result));
+                    }
                     Token::Comparacion => return Some(Token::Boolean(left == right)),
                     Token::MayorA => return Some(Token::Boolean(left > right)),
                     Token::MayorOIgual => return Some(Token::Boolean(left >= right)),
@@ -121,7 +138,7 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
 
     for token in tokens {
         match token {
-            Token::Numero(_) | Token::Float(_) | Token::String(_) => stack.push(token),
+            Token::Numero(..) | Token::Float(_) | Token::String(_) => stack.push(token),
             operator => {
                 let right = stack.pop().unwrap();
                 let left = stack.pop().unwrap();
@@ -159,14 +176,14 @@ mod parser_tests {
         assert_eq!(
             result,
             vec![
-                Token::Numero(5),
-                Token::Numero(4),
+                Token::Numero(5.0, true),
+                Token::Numero(4.0, true),
                 Token::Multiplicacion,
-                Token::Numero(3),
-                Token::Numero(2),
+                Token::Numero(3.0, true),
+                Token::Numero(2.0, true),
                 Token::Multiplicacion,
                 Token::Suma,
-                Token::Numero(1),
+                Token::Numero(1.0, true),
                 Token::Resta,
             ]
         )
@@ -179,7 +196,7 @@ mod parser_tests {
         let postfix = shunting_yard(tokens);
         let result = postfix_stack_evaluator(postfix);
 
-        assert_eq!(result, Some(Token::Numero(25)));
+        assert_eq!(result, Some(Token::Numero(25.0, true)));
     }
 
     #[test]

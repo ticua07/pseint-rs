@@ -22,9 +22,9 @@ impl Lexer {
         }
 
         if string.matches(".").count() == 1 {
-            return Token::Float(string.parse().unwrap());
+            return Token::Numero(string.parse().unwrap(), false);
         } else {
-            return Token::Numero(string.parse().unwrap());
+            return Token::Numero(string.parse().unwrap(), true);
         }
     }
 

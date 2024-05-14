@@ -18,7 +18,7 @@ pub enum Token {
     Multiplicacion,
     Division,
 
-    Numero(i32),
+    Numero(f32, bool),
     Float(f32),
     String(String),
     Boolean(bool),

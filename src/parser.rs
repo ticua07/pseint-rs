@@ -6,7 +6,7 @@ pub fn shunting_yard(expression: Vec<Token>) -> Vec<Token> {
 
     for token in expression {
         match token {
-            Token::Numero(..) | Token::Float(_) | Token::String(_) => queue.push(token),
+            Token::Numero(..) | Token::String(_) => queue.push(token),
 
             Token::AbrirParentesis => stack.push(token),
             Token::Suma | Token::Resta => {
@@ -138,7 +138,7 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
 
     for token in tokens {
         match token {
-            Token::Numero(..) | Token::Float(_) | Token::String(_) => stack.push(token),
+            Token::Numero(..) | Token::String(_) => stack.push(token),
             operator => {
                 let right = stack.pop().unwrap();
                 let left = stack.pop().unwrap();

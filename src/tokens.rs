@@ -19,7 +19,6 @@ pub enum Token {
     Division,
 
     Numero(f32, bool),
-    Float(f32),
     String(String),
     Boolean(bool),
     EOL, // ';'

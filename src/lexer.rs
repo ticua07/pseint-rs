@@ -137,8 +137,6 @@ impl Lexer {
             }
         }
 
-        println!("{:?}", tokens);
-
         tokens
     }
 }

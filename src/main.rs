@@ -18,7 +18,7 @@ fn main() {
     let lines: Vec<&str> = content.lines().collect();
 
     let lines_of_code = lines[1 + algo_start..algo_end].to_vec();
-    let interpreter = Interpreter::new(lines_of_code);
+    let mut interpreter = Interpreter::new(lines_of_code);
     let _ = interpreter.run();
 
     // let tokens = Lexer::lex("(5*4+3*2)-1".to_string());

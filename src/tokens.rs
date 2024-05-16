@@ -76,6 +76,13 @@ pub fn convert_to_keyword(text: String) -> Token {
     return Token::Identificador(text);
 }
 
+pub fn convert_to_type(token: Token) -> Option<Type> {
+    match token {
+        Token::Tipo(val) => return Some(val),
+        _ => return None,
+    }
+}
+
 impl Token {
     pub fn get_as_string(self) -> String {
         match self {

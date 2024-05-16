@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::error::{CodeError, PossibleErrors};
 use crate::lexer::Lexer;
 use crate::memory::Memoria;
 use crate::parser::{postfix_stack_evaluator, shunting_yard};
@@ -29,7 +30,7 @@ impl Interpreter {
                 Token::Instruccion(instr) => match instr {
                     Keyword::Escribir => {
                         let expression = &instruction[1..instruction.len()];
-                        let postfix = shunting_yard(expression.to_vec(), &self.memory);
+                        let postfix = shunting_yard(expression.to_vec(), &self.memory)?;
                         let result = postfix_stack_evaluator(postfix);
                         if let Some(i) = result {
                             println!("{}", i.get_as_string());
@@ -66,7 +67,6 @@ impl Interpreter {
                         {
                             match identifier {
                                 Token::Identificador(var_name) => {
-                                    println!("DEBUG: setting {} to {}", &var_name, &var_type);
                                     self.memory.create(
                                         var_name,
                                         convert_to_type(var_type.to_owned()).unwrap(),
@@ -95,7 +95,7 @@ impl Interpreter {
                     }
 
                     let expression = instruction[2..instruction.len()].to_vec();
-                    let postfix = shunting_yard(expression, &self.memory);
+                    let postfix = shunting_yard(expression, &self.memory)?;
                     let result = postfix_stack_evaluator(postfix);
                     self.memory.set(var_name.clone(), result.unwrap());
                 }
@@ -104,35 +104,5 @@ impl Interpreter {
         }
 
         Ok(())
-    }
-}
-
-#[derive(Debug, Clone)]
-enum PossibleErrors {
-    MissingArguments,
-    MissingTypeOrUnvalidType,
-    WrongType,
-    SyntaxError,
-    InvalidInstruction,
-    IncompleteAssignment,
-}
-
-#[derive(Debug, Clone)]
-pub struct CodeError {
-    error: PossibleErrors,
-}
-
-impl fmt::Display for CodeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.error {
-            PossibleErrors::MissingArguments => write!(f, "ERROR 53: Faltan parámetros."),
-            PossibleErrors::WrongType => write!(f, "ERROR 125: No coinciden los tipos."),
-            PossibleErrors::MissingTypeOrUnvalidType => {
-                write!(f, "ERROR 46: Falta tipo de dato o tipo no válido.")
-            }
-            PossibleErrors::SyntaxError => write!(f, "ERROR -1: Error de sintaxis."),
-            PossibleErrors::InvalidInstruction => write!(f, "ERROR 106: Instrucción no válida."),
-            PossibleErrors::IncompleteAssignment => write!(f, "ERROR 89: Asignación incompleta."),
-        }
     }
 }

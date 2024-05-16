@@ -29,7 +29,7 @@ impl Interpreter {
                 Token::Instruccion(instr) => match instr {
                     Keyword::Escribir => {
                         let expression = &instruction[1..instruction.len()];
-                        let postfix = shunting_yard(expression.to_vec());
+                        let postfix = shunting_yard(expression.to_vec(), &self.memory);
                         let result = postfix_stack_evaluator(postfix);
                         if let Some(i) = result {
                             println!("{}", i.get_as_string());

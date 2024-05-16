@@ -1,12 +1,19 @@
-use crate::tokens::Token;
+use crate::{memory::Memoria, tokens::Token};
 
-pub fn shunting_yard(expression: Vec<Token>) -> Vec<Token> {
+pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Vec<Token> {
     let mut stack: Vec<Token> = Vec::new();
     let mut queue: Vec<Token> = Vec::new();
 
     for token in expression {
         match token {
             Token::Numero(..) | Token::String(_) => queue.push(token),
+
+            Token::Identificador(var_name) => match memory.get(var_name) {
+                Some(token) => queue.push(token.clone()),
+                None => {
+                    println!("tried to access variable that doesn't exist");
+                }
+            },
 
             Token::AbrirParentesis => stack.push(token),
             Token::Suma | Token::Resta => {
@@ -171,7 +178,8 @@ mod parser_tests {
     fn shutting_yard_algo() {
         let expression = "(5*4+3*2)-1";
         let tokens = Lexer::lex(expression.to_string());
-        let result = shunting_yard(tokens);
+        let memory = Memoria::new();
+        let result = shunting_yard(tokens, &memory);
 
         assert_eq!(
             result,
@@ -193,7 +201,9 @@ mod parser_tests {
     fn postfix_arithmetic() {
         let expression = "(5*4+3*2)-1";
         let tokens = Lexer::lex(expression.to_string());
-        let postfix = shunting_yard(tokens);
+        let memory = Memoria::new();
+
+        let postfix = shunting_yard(tokens, &memory);
         let result = postfix_stack_evaluator(postfix);
 
         assert_eq!(result, Some(Token::Numero(25.0, true)));
@@ -203,7 +213,9 @@ mod parser_tests {
     fn postfix_concatenate() {
         let expression = "'hola' + ' mundo'";
         let tokens = Lexer::lex(expression.to_string());
-        let postfix = shunting_yard(tokens);
+        let memory = Memoria::new();
+
+        let postfix = shunting_yard(tokens, &memory);
         let result = postfix_stack_evaluator(postfix);
 
         assert_eq!(result, Some(Token::String("hola mundo".to_string())));
@@ -214,7 +226,9 @@ mod parser_tests {
         let invalid_expressions = vec!["'hola' - 10", "'hola' - 'chau'", "10 - 'hola'"];
         for expr in invalid_expressions {
             let tokens = Lexer::lex(expr.to_string());
-            let postfix = shunting_yard(tokens);
+            let memory = Memoria::new();
+
+            let postfix = shunting_yard(tokens, &memory);
 
             // Should return None when adding 2 different types
             let result = postfix_stack_evaluator(postfix);

@@ -1,6 +1,10 @@
-use crate::{memory::Memoria, tokens::Token};
+use crate::{
+    error::{CodeError, PossibleErrors},
+    memory::Memoria,
+    tokens::Token,
+};
 
-pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Vec<Token> {
+pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Token>, CodeError> {
     let mut stack: Vec<Token> = Vec::new();
     let mut queue: Vec<Token> = Vec::new();
 
@@ -8,10 +12,12 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Vec<Token> {
         match token {
             Token::Numero(..) | Token::String(_) => queue.push(token),
 
-            Token::Identificador(var_name) => match memory.get(var_name) {
+            Token::Identificador(ref var_name) => match memory.get(var_name.clone()) {
                 Some(token) => queue.push(token.clone()),
                 None => {
-                    println!("tried to access variable that doesn't exist");
+                    return Err(CodeError {
+                        error: PossibleErrors::VariableNotFound(var_name.clone()),
+                    });
                 }
             },
 
@@ -61,7 +67,7 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Vec<Token> {
         queue.push(stack.pop().unwrap());
     }
 
-    queue
+    Ok(queue)
 }
 
 struct CalcNode {
@@ -179,7 +185,7 @@ mod parser_tests {
         let expression = "(5*4+3*2)-1";
         let tokens = Lexer::lex(expression.to_string());
         let memory = Memoria::new();
-        let result = shunting_yard(tokens, &memory);
+        let result = shunting_yard(tokens, &memory).unwrap();
 
         assert_eq!(
             result,
@@ -203,7 +209,7 @@ mod parser_tests {
         let tokens = Lexer::lex(expression.to_string());
         let memory = Memoria::new();
 
-        let postfix = shunting_yard(tokens, &memory);
+        let postfix = shunting_yard(tokens, &memory).unwrap();
         let result = postfix_stack_evaluator(postfix);
 
         assert_eq!(result, Some(Token::Numero(25.0, true)));
@@ -215,7 +221,7 @@ mod parser_tests {
         let tokens = Lexer::lex(expression.to_string());
         let memory = Memoria::new();
 
-        let postfix = shunting_yard(tokens, &memory);
+        let postfix = shunting_yard(tokens, &memory).unwrap();
         let result = postfix_stack_evaluator(postfix);
 
         assert_eq!(result, Some(Token::String("hola mundo".to_string())));
@@ -228,7 +234,7 @@ mod parser_tests {
             let tokens = Lexer::lex(expr.to_string());
             let memory = Memoria::new();
 
-            let postfix = shunting_yard(tokens, &memory);
+            let postfix = shunting_yard(tokens, &memory).unwrap();
 
             // Should return None when adding 2 different types
             let result = postfix_stack_evaluator(postfix);

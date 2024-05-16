@@ -76,6 +76,23 @@ pub fn convert_to_keyword(text: String) -> Token {
     return Token::Identificador(text);
 }
 
+impl Token {
+    pub fn get_as_string(self) -> String {
+        match self {
+            Token::Numero(num, rounded) => {
+                if rounded {
+                    return f32::trunc(num).to_string();
+                } else {
+                    return num.to_string();
+                }
+            }
+            Token::String(string) => return string,
+            Token::Boolean(bool) => return bool.to_string(),
+            _ => "".to_string(),
+        }
+    }
+}
+
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let name = format!("{:?}", self);

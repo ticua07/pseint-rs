@@ -80,7 +80,25 @@ impl Interpreter {
                     }
                     Keyword::None | _ => {}
                 },
+                // If it starts with variable, it must be an assignment
+                Token::Identificador(var_name) => {
+                    let assignment = instruction.get(1);
+                    if assignment.is_none() {
+                        return Err(CodeError {
+                            error: PossibleErrors::InvalidInstruction,
+                        });
+                    }
+                    if instruction.len() <= 2 {
+                        return Err(CodeError {
+                            error: PossibleErrors::IncompleteAssignment,
+                        });
+                    }
 
+                    let expression = instruction[2..instruction.len()].to_vec();
+                    let postfix = shunting_yard(expression, &self.memory);
+                    let result = postfix_stack_evaluator(postfix);
+                    self.memory.set(var_name.clone(), result.unwrap());
+                }
                 _ => {}
             }
         }
@@ -95,6 +113,8 @@ enum PossibleErrors {
     MissingTypeOrUnvalidType,
     WrongType,
     SyntaxError,
+    InvalidInstruction,
+    IncompleteAssignment,
 }
 
 #[derive(Debug, Clone)]
@@ -111,6 +131,8 @@ impl fmt::Display for CodeError {
                 write!(f, "ERROR 46: Falta tipo de dato o tipo no válido.")
             }
             PossibleErrors::SyntaxError => write!(f, "ERROR -1: Error de sintaxis."),
+            PossibleErrors::InvalidInstruction => write!(f, "ERROR 106: Instrucción no válida."),
+            PossibleErrors::IncompleteAssignment => write!(f, "ERROR 89: Asignación incompleta."),
         }
     }
 }

@@ -8,6 +8,7 @@ use crate::{
 mod file;
 mod interpreter;
 mod lexer;
+mod memory;
 mod parser;
 mod tokens;
 

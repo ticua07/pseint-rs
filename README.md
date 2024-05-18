@@ -5,5 +5,6 @@ Implementation of the PSeInt interpreter in Rust, this repo contains the lexer, 
 - [x] Lexing
 - [x] Data types
 - [x] Arithmetic Parsing
-- [] Variables
-- [] Interpreter
+- [x] Variables
+- [x] Input and output (Leer and Escribir)
+- [x] Interpreter (in progress, only basic keywords functioning)

@@ -58,7 +58,10 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
             }
 
             _ => {
-                println!("token {:?} shouldn't be here", token)
+                println!("token {:?} shouldn't be here", token);
+                return Err(CodeError {
+                    error: PossibleErrors::InvalidInstruction,
+                });
             }
         };
     }

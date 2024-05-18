@@ -1,4 +1,4 @@
-use std::fmt;
+use std::io::{self, Read, Write};
 
 use crate::error::{CodeError, PossibleErrors};
 use crate::lexer::Lexer;
@@ -40,6 +40,80 @@ impl Interpreter {
                             });
                         }
                     }
+                    Keyword::Leer => {
+                        let expression = &instruction[1..instruction.len()];
+                        for identifier in expression.to_vec() {
+                            match identifier {
+                                Token::Identificador(var_name) => {
+                                    let var_type = self.memory.get_type(var_name.clone()).unwrap();
+
+                                    print!("> ");
+                                    io::stdout().flush().unwrap();
+                                    let mut buffer = String::new();
+                                    io::stdin().read_line(&mut buffer).unwrap();
+
+                                    buffer = buffer.trim().to_string();
+
+                                    match var_type {
+                                        Type::Caracter => {
+                                            self.memory.set(var_name, Token::String(buffer))?;
+                                        }
+                                        Type::Real => {
+                                            let parsed = match buffer.parse::<f32>() {
+                                                Ok(val) => val,
+                                                Err(_) => {
+                                                    return Err(CodeError {
+                                                        error: PossibleErrors::WrongType,
+                                                    });
+                                                }
+                                            };
+                                            let value = Token::Numero(parsed, false);
+
+                                            self.memory.set(var_name, value)?;
+                                        }
+                                        Type::Entero => {
+                                            let parsed = match buffer.parse::<f32>() {
+                                                Ok(val) => val,
+                                                Err(_) => {
+                                                    return Err(CodeError {
+                                                        error: PossibleErrors::WrongType,
+                                                    });
+                                                }
+                                            };
+                                            if parsed.fract() != 0.0 {
+                                                return Err(CodeError {
+                                                    error: PossibleErrors::WrongType,
+                                                });
+                                            }
+
+                                            let value = Token::Numero(parsed, true);
+
+                                            self.memory.set(var_name, value)?;
+                                        }
+                                        Type::Logico => {
+                                            let value = match buffer.to_lowercase().as_str() {
+                                                "verdadero" => true,
+                                                "falso" => false,
+                                                _ => {
+                                                    return Err(CodeError {
+                                                        error: PossibleErrors::WrongType,
+                                                    });
+                                                }
+                                            };
+                                            self.memory.set(var_name, Token::Boolean(value))?;
+                                        }
+
+                                        Type::None => {
+                                            return Err(CodeError {
+                                                error: PossibleErrors::SyntaxError,
+                                            })
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
                     Keyword::Definir => {
                         let expression = instruction[1..instruction.len()].to_vec();
                         let var_type = expression.last().unwrap();
@@ -67,10 +141,8 @@ impl Interpreter {
                         {
                             match identifier {
                                 Token::Identificador(var_name) => {
-                                    self.memory.create(
-                                        var_name,
-                                        convert_to_type(var_type.to_owned()).unwrap(),
-                                    );
+                                    self.memory
+                                        .create(var_name, convert_to_type(&var_type).unwrap());
                                 }
                                 _ => {}
                             }
@@ -97,7 +169,7 @@ impl Interpreter {
                     let expression = instruction[2..instruction.len()].to_vec();
                     let postfix = shunting_yard(expression, &self.memory)?;
                     let result = postfix_stack_evaluator(postfix);
-                    self.memory.set(var_name.clone(), result.unwrap());
+                    self.memory.set(var_name.clone(), result.unwrap())?;
                 }
                 _ => {}
             }

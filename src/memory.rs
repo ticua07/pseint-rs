@@ -1,6 +1,9 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use crate::tokens::{Token, Type};
+use crate::{
+    error::{CodeError, PossibleErrors},
+    tokens::{Token, Type},
+};
 
 pub struct Memoria {
     current_scope: u8,
@@ -44,22 +47,44 @@ impl Memoria {
         }
     }
 
+    pub fn get_type(&self, name: String) -> Option<Type> {
+        let data = self.memory.get(&(name, self.current_scope))?;
+
+        match data {
+            Token::Numero(_, rounded) => {
+                if *rounded {
+                    return Some(Type::Entero);
+                }
+                return Some(Type::Real);
+            }
+            Token::String(_) => return Some(Type::Caracter),
+            Token::Boolean(_) => return Some(Type::Logico),
+            _ => None,
+        }
+    }
+
     pub fn get(&self, name: String) -> Option<&Token> {
         let data = self.memory.get(&(name, self.current_scope));
 
         data
     }
 
-    pub fn set(&mut self, name: String, value: Token) -> Option<()> {
+    pub fn set(&mut self, name: String, value: Token) -> Result<(), CodeError> {
         match self.memory.entry((name, self.current_scope)) {
             Entry::Occupied(mut entry) => {
                 if !(std::mem::discriminant(entry.get()) == std::mem::discriminant(&value)) {
-                    return None;
+                    return Err(CodeError {
+                        error: crate::error::PossibleErrors::WrongType,
+                    });
                 }
                 entry.insert(value);
-                Some(())
+                Ok(())
             }
-            Entry::Vacant(entry) => None,
+            Entry::Vacant(entry) => {
+                return Err(CodeError {
+                    error: PossibleErrors::VariableNotFound(entry.key().0.clone()),
+                });
+            }
         }
     }
 }

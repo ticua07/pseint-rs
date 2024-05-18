@@ -43,6 +43,7 @@ pub enum Keyword {
     Algoritmo,
     FinAlgoritmo,
     Escribir,
+    Leer,
     Como,
     Definir,
 }
@@ -76,9 +77,9 @@ pub fn convert_to_keyword(text: String) -> Token {
     return Token::Identificador(text);
 }
 
-pub fn convert_to_type(token: Token) -> Option<Type> {
+pub fn convert_to_type(token: &Token) -> Option<Type> {
     match token {
-        Token::Tipo(val) => return Some(val),
+        Token::Tipo(val) => return Some(*val),
         _ => return None,
     }
 }

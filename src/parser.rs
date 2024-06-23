@@ -157,7 +157,12 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
             Token::Numero(..) | Token::String(_) => stack.push(token),
             operator => {
                 let right = stack.pop().unwrap();
-                let left = stack.pop().unwrap();
+
+                // TODO: Fix this logic
+                // This may work with -123 correctly for example, but works with *123 which is bad
+                let left = stack.pop().unwrap_or(Token::Numero(0f32, false));
+
+                println!("{:?}\n{:?}", left, right);
 
                 let node = CalcNode {
                     left,

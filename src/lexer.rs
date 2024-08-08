@@ -79,7 +79,21 @@ impl Lexer {
                 }
 
                 '+' => tokens.push(Token::Suma),
-                '-' => tokens.push(Token::Resta),
+                '-' => {
+                    if tokens.last().is_some()
+                        && !(std::mem::discriminant(tokens.last().unwrap())
+                            == std::mem::discriminant(&Token::Numero(0.0, false)))
+                    {
+                        let ch = chars.peek().unwrap().to_owned();
+                        chars.next();
+                        let token = Lexer::parse_numeric(ch, &mut chars);
+                        if let Token::Numero(i, rounded) = token {
+                            tokens.push(Token::Numero(-i, rounded));
+                        }
+                    } else {
+                        tokens.push(Token::Resta)
+                    }
+                }
                 '*' => tokens.push(Token::Multiplicacion),
                 '/' => tokens.push(Token::Division),
 

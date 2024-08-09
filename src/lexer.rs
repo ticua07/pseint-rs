@@ -80,10 +80,7 @@ impl Lexer {
 
                 '+' => tokens.push(Token::Suma),
                 '-' => {
-                    if tokens.last().is_some()
-                        && !(std::mem::discriminant(tokens.last().unwrap())
-                            == std::mem::discriminant(&Token::Numero(0.0, false)))
-                    {
+                    if tokens.last().is_some() && tokens.last().unwrap() == &Token::Igual {
                         let ch = chars.peek().unwrap().to_owned();
                         chars.next();
                         let token = Lexer::parse_numeric(ch, &mut chars);

@@ -1,6 +1,6 @@
-use std::fs;
+use std::{fs, path::Path};
 
-pub fn open_file(path: &str) -> String {
+pub fn open_file(path: impl AsRef<Path>) -> String {
     let file: String = fs::read_to_string(path).expect("Couldn't open file.");
 
     file

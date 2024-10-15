@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 strum = { version = "0.26", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }

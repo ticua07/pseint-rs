@@ -21,12 +21,12 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let content = file::open_file(args.path);
+    let content = file::open(args.path);
     let (algo_start, algo_end) = find_algorithm(&content);
     let lines: Vec<&str> = content.lines().collect();
 
     let lines_of_code = lines[1 + algo_start..algo_end].to_vec();
-    let mut interpreter = Interpreter::new(lines_of_code);
+    let mut interpreter = Interpreter::new(&lines_of_code);
     let result = interpreter.run();
     if result.is_err() {
         println!("{}", result.err().unwrap());

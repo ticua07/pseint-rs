@@ -1,10 +1,10 @@
 use crate::{
-    error::{CodeError, PossibleErrors},
+    error::{Code, PossibleErrors},
     memory::Memoria,
     tokens::Token,
 };
 
-pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Token>, CodeError> {
+pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Token>, Code> {
     let mut stack: Vec<Token> = Vec::new();
     let mut queue: Vec<Token> = Vec::new();
 
@@ -15,13 +15,13 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
             Token::Identificador(ref var_name) => match memory.get(var_name.clone()) {
                 Some(token) => queue.push(token.clone()),
                 None => {
-                    return Err(CodeError {
+                    return Err(Code {
                         error: PossibleErrors::VariableNotFound(var_name.clone()),
                     });
                 }
             },
 
-            Token::AbrirParentesis => stack.push(token),
+            Token::AbrirParentesis | Token::Comparacion => stack.push(token),
             Token::Suma | Token::Resta => {
                 // Suma y Resta tienen mas precedencia, entonces se reemplazan por los simbolos
                 // de menor precedencia siendo la multiplicación y división
@@ -38,35 +38,34 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
                 }
             }
 
-            Token::Multiplicacion | Token::Division => {
+            Token::Multiplicacion
+            | Token::Division
+            | Token::MayorA
+            | Token::MayorOIgual
+            | Token::MenorA
+            | Token::MenorOIgual => {
                 stack.push(token);
             }
-
-            Token::MayorA | Token::MayorOIgual | Token::MenorA | Token::MenorOIgual => {
-                stack.push(token)
-            }
-
-            Token::Comparacion => stack.push(token),
 
             Token::CerrarParentesis => {
                 let mut curr_char = stack.pop().unwrap();
 
                 while curr_char != Token::AbrirParentesis {
                     queue.push(curr_char);
-                    curr_char = stack.pop().unwrap()
+                    curr_char = stack.pop().unwrap();
                 }
             }
 
             _ => {
-                println!("token {:?} shouldn't be here", token);
-                return Err(CodeError {
+                println!("token {token:?} shouldn't be here");
+                return Err(Code {
                     error: PossibleErrors::InvalidInstruction,
                 });
             }
         };
     }
 
-    while stack.len() != 0 {
+    while stack.is_empty() {
         queue.push(stack.pop().unwrap());
     }
 
@@ -87,16 +86,16 @@ impl CalcNode {
         None
     }
 
-    fn get_number_from_token(token: Token) -> Option<(f32, bool)> {
+    fn get_number_from_token(token: &Token) -> Option<(f32, bool)> {
         if let Token::Numero(i, rounded) = token {
-            return Some((i, rounded));
+            return Some((*i, *rounded));
         }
         None
     }
 
     fn calculate_operation(result: f32) -> Token {
         let is_rounded = result.fract() == 0.0;
-        return Token::Numero(result, is_rounded);
+        Token::Numero(result, is_rounded)
     }
 
     pub fn calculate(self) -> Option<Token> {
@@ -106,31 +105,31 @@ impl CalcNode {
 
         match self.left {
             Token::Numero(_, _) => {
-                let (left, _) = CalcNode::get_number_from_token(self.left).unwrap();
-                let (right, _) = CalcNode::get_number_from_token(self.right).unwrap();
+                let (left, _) = CalcNode::get_number_from_token(&self.left).unwrap();
+                let (right, _) = CalcNode::get_number_from_token(&self.right).unwrap();
 
                 match self.operator {
                     Token::Suma => {
                         let result = left + right;
-                        return Some(CalcNode::calculate_operation(result));
+                        Some(CalcNode::calculate_operation(result))
                     }
                     Token::Resta => {
                         let result = left - right;
-                        return Some(CalcNode::calculate_operation(result));
+                        Some(CalcNode::calculate_operation(result))
                     }
                     Token::Multiplicacion => {
                         let result = left * right;
-                        return Some(CalcNode::calculate_operation(result));
+                        Some(CalcNode::calculate_operation(result))
                     }
                     Token::Division => {
                         let result = left / right;
-                        return Some(CalcNode::calculate_operation(result));
+                        Some(CalcNode::calculate_operation(result))
                     }
-                    Token::Comparacion => return Some(Token::Boolean(left == right)),
-                    Token::MayorA => return Some(Token::Boolean(left > right)),
-                    Token::MayorOIgual => return Some(Token::Boolean(left >= right)),
-                    Token::MenorA => return Some(Token::Boolean(left < right)),
-                    Token::MenorOIgual => return Some(Token::Boolean(left <= right)),
+                    Token::Comparacion => Some(Token::Boolean((left - right).abs() < 0.1)),
+                    Token::MayorA => Some(Token::Boolean(left > right)),
+                    Token::MayorOIgual => Some(Token::Boolean(left >= right)),
+                    Token::MenorA => Some(Token::Boolean(left < right)),
+                    Token::MenorOIgual => Some(Token::Boolean(left <= right)),
                     _ => None,
                 }
             }
@@ -139,8 +138,8 @@ impl CalcNode {
                 let right = CalcNode::get_string_from_token(self.right).unwrap();
 
                 match self.operator {
-                    Token::Suma => return Some(Token::String(left + &right)),
-                    Token::Comparacion => return Some(Token::Boolean(left == right)),
+                    Token::Suma => Some(Token::String(left + &right)),
+                    Token::Comparacion => Some(Token::Boolean(left == right)),
                     _ => None,
                 }
             }
@@ -166,10 +165,8 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
                     operator,
                 };
                 let result = node.calculate();
-                if result.is_none() {
-                    return None;
-                }
-                stack.push(result.unwrap())
+                result.as_ref()?;
+                stack.push(result.unwrap());
             }
         }
     }
@@ -187,7 +184,7 @@ mod parser_tests {
     #[test]
     fn shutting_yard_algo() {
         let expression = "(5*4+3*2)-1";
-        let tokens = Lexer::lex(expression.to_string());
+        let tokens = Lexer::lex(expression);
         let memory = Memoria::new();
         let result = shunting_yard(tokens, &memory).unwrap();
 
@@ -210,7 +207,7 @@ mod parser_tests {
     #[test]
     fn postfix_arithmetic() {
         let expression = "(5*4+3*2)-1";
-        let tokens = Lexer::lex(expression.to_string());
+        let tokens = Lexer::lex(expression);
         let memory = Memoria::new();
 
         let postfix = shunting_yard(tokens, &memory).unwrap();
@@ -222,7 +219,7 @@ mod parser_tests {
     #[test]
     fn postfix_concatenate() {
         let expression = "'hola' + ' mundo'";
-        let tokens = Lexer::lex(expression.to_string());
+        let tokens = Lexer::lex(expression);
         let memory = Memoria::new();
 
         let postfix = shunting_yard(tokens, &memory).unwrap();
@@ -235,7 +232,7 @@ mod parser_tests {
     fn postfix_error() {
         let invalid_expressions = vec!["'hola' - 10", "'hola' - 'chau'", "10 - 'hola'"];
         for expr in invalid_expressions {
-            let tokens = Lexer::lex(expr.to_string());
+            let tokens = Lexer::lex(expr);
             let memory = Memoria::new();
 
             let postfix = shunting_yard(tokens, &memory).unwrap();

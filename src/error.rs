@@ -17,11 +17,11 @@ pub enum PossibleErrors {
 }
 
 #[derive(Debug, Clone)]
-pub struct CodeError {
+pub struct Code {
     pub error: PossibleErrors,
 }
 
-impl fmt::Display for CodeError {
+impl fmt::Display for Code {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.error {
             PossibleErrors::MissingArguments => write!(f, "ERROR 53: Faltan parámetros."),

@@ -21,11 +21,10 @@ impl Lexer {
             curr_char = chars.next().unwrap();
         }
 
-        if string.matches(".").count() == 1 {
+        if string.matches('.').count() == 1 {
             return Token::Numero(string.parse().unwrap(), false);
-        } else {
-            return Token::Numero(string.parse().unwrap(), true);
         }
+        Token::Numero(string.parse().unwrap(), true)
     }
 
     fn parse_alphanumeric(initial_char: char, chars: &mut Peekable<Chars>) -> Token {
@@ -56,11 +55,10 @@ impl Lexer {
             curr_char = chars.next().unwrap();
         }
 
-        let token = Token::String(string);
-        return token;
+        Token::String(string)
     }
 
-    pub fn lex(code: String) -> Vec<Token> {
+    pub fn lex(code: &str) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
         let mut chars = code.chars().peekable();
 
@@ -74,7 +72,7 @@ impl Lexer {
                         tokens.push(Token::Comparacion);
                         chars.next();
                     } else {
-                        tokens.push(Token::Igual)
+                        tokens.push(Token::Igual);
                     }
                 }
 
@@ -88,7 +86,7 @@ impl Lexer {
                             tokens.push(Token::Numero(-i, rounded));
                         }
                     } else {
-                        tokens.push(Token::Resta)
+                        tokens.push(Token::Resta);
                     }
                 }
                 '*' => tokens.push(Token::Multiplicacion),
@@ -104,7 +102,7 @@ impl Lexer {
                         tokens.push(Token::MenorOIgual);
                         chars.next();
                     } else {
-                        tokens.push(Token::MenorA)
+                        tokens.push(Token::MenorA);
                     }
                 }
 
@@ -115,7 +113,7 @@ impl Lexer {
                         tokens.push(Token::MayorOIgual);
                         chars.next();
                     } else {
-                        tokens.push(Token::MayorA)
+                        tokens.push(Token::MayorA);
                     }
                 }
 
@@ -152,15 +150,15 @@ impl Lexer {
     }
 }
 
-pub fn find_algorithm(code: &String) -> (usize, usize) {
-    let lines = code.lines().map(|line| line.to_ascii_lowercase());
+pub fn find_algorithm(code: &str) -> (usize, usize) {
+    let lines = code.lines().map(str::to_ascii_lowercase);
     let mut algo_start: usize = 0;
     let mut algo_end: usize = 0;
 
     // TODO: add error handling for files without starting or ending algorithm keywords
     for (idx, line) in lines.enumerate() {
         if line.starts_with("algoritmo") {
-            algo_start = idx
+            algo_start = idx;
         } else if line.starts_with("finalgoritmo") {
             algo_end = idx;
         }

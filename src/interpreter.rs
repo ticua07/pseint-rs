@@ -1,6 +1,6 @@
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 
-use crate::error::{CodeError, PossibleErrors};
+use crate::error::{Code, PossibleErrors};
 use crate::lexer::Lexer;
 use crate::memory::Memoria;
 use crate::parser::{postfix_stack_evaluator, shunting_yard};
@@ -12,19 +12,20 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(lines_of_code: Vec<&str>) -> Interpreter {
+    pub fn new(lines_of_code: &[&str]) -> Interpreter {
         let code = lines_of_code
             .iter()
-            .map(|f| Lexer::lex(f.to_string()))
+            .map(|f| Lexer::lex(f))
             .filter(|f| !f.is_empty())
             .collect();
 
         let memory = Memoria::new();
 
-        return Self { code, memory };
+        Self { code, memory }
     }
 
-    pub fn run(&mut self) -> Result<(), CodeError> {
+    #[allow(clippy::too_many_lines)]
+    pub fn run(&mut self) -> Result<(), Code> {
         for instruction in self.code.clone() {
             match instruction.first().unwrap() {
                 Token::Instruccion(instr) => match instr {
@@ -35,82 +36,73 @@ impl Interpreter {
                         if let Some(i) = result {
                             println!("{}", i.get_as_string());
                         } else {
-                            return Err(CodeError {
+                            return Err(Code {
                                 error: PossibleErrors::MissingArguments,
                             });
                         }
                     }
                     Keyword::Leer => {
                         let expression = &instruction[1..instruction.len()];
-                        for identifier in expression.to_vec() {
-                            match identifier {
-                                Token::Identificador(var_name) => {
-                                    let var_type = self.memory.get_type(var_name.clone()).unwrap();
+                        for identifier in expression.iter().cloned() {
+                            if let Token::Identificador(var_name) = identifier {
+                                let var_type = self.memory.get_type(var_name.clone()).unwrap();
 
-                                    print!("> ");
-                                    io::stdout().flush().unwrap();
-                                    let mut buffer = String::new();
-                                    io::stdin().read_line(&mut buffer).unwrap();
+                                print!("> ");
+                                io::stdout().flush().unwrap();
+                                let mut buffer = String::new();
+                                io::stdin().read_line(&mut buffer).unwrap();
 
-                                    buffer = buffer.trim().to_string();
+                                buffer = buffer.trim().to_string();
 
-                                    match var_type {
-                                        Type::Caracter => {
-                                            self.memory.set(var_name, Token::String(buffer))?;
+                                match var_type {
+                                    Type::Caracter => {
+                                        self.memory.set(var_name, Token::String(buffer))?;
+                                    }
+                                    Type::Real => {
+                                        let Ok(parsed) = buffer.parse::<f32>() else {
+                                            return Err(Code {
+                                                error: PossibleErrors::WrongType,
+                                            });
+                                        };
+                                        let value = Token::Numero(parsed, false);
+
+                                        self.memory.set(var_name, value)?;
+                                    }
+                                    Type::Entero => {
+                                        let Ok(parsed) = buffer.parse::<f32>() else {
+                                            return Err(Code {
+                                                error: PossibleErrors::WrongType,
+                                            });
+                                        };
+                                        if parsed.fract() != 0.0 {
+                                            return Err(Code {
+                                                error: PossibleErrors::WrongType,
+                                            });
                                         }
-                                        Type::Real => {
-                                            let parsed = match buffer.parse::<f32>() {
-                                                Ok(val) => val,
-                                                Err(_) => {
-                                                    return Err(CodeError {
-                                                        error: PossibleErrors::WrongType,
-                                                    });
-                                                }
-                                            };
-                                            let value = Token::Numero(parsed, false);
 
-                                            self.memory.set(var_name, value)?;
-                                        }
-                                        Type::Entero => {
-                                            let parsed = match buffer.parse::<f32>() {
-                                                Ok(val) => val,
-                                                Err(_) => {
-                                                    return Err(CodeError {
-                                                        error: PossibleErrors::WrongType,
-                                                    });
-                                                }
-                                            };
-                                            if parsed.fract() != 0.0 {
-                                                return Err(CodeError {
+                                        let value = Token::Numero(parsed, true);
+
+                                        self.memory.set(var_name, value)?;
+                                    }
+                                    Type::Logico => {
+                                        let value = match buffer.to_lowercase().as_str() {
+                                            "verdadero" => true,
+                                            "falso" => false,
+                                            _ => {
+                                                return Err(Code {
                                                     error: PossibleErrors::WrongType,
                                                 });
                                             }
+                                        };
+                                        self.memory.set(var_name, Token::Boolean(value))?;
+                                    }
 
-                                            let value = Token::Numero(parsed, true);
-
-                                            self.memory.set(var_name, value)?;
-                                        }
-                                        Type::Logico => {
-                                            let value = match buffer.to_lowercase().as_str() {
-                                                "verdadero" => true,
-                                                "falso" => false,
-                                                _ => {
-                                                    return Err(CodeError {
-                                                        error: PossibleErrors::WrongType,
-                                                    });
-                                                }
-                                            };
-                                            self.memory.set(var_name, Token::Boolean(value))?;
-                                        }
-
-                                        Type::None => {
-                                            return Err(CodeError {
-                                                error: PossibleErrors::SyntaxError,
-                                            })
-                                        }
+                                    Type::None => {
+                                        return Err(Code {
+                                            error: PossibleErrors::SyntaxError,
+                                        })
                                     }
                                 }
-                                _ => {}
                             }
                         }
                     }
@@ -125,43 +117,41 @@ impl Interpreter {
                             == std::mem::discriminant(&Token::Tipo(Type::None)))
                             || *var_type == Token::Tipo(Type::None)
                         {
-                            return Err(CodeError {
+                            return Err(Code {
                                 error: PossibleErrors::MissingTypeOrUnvalidType,
                             });
                         }
 
                         if identifier_como.is_none() {
-                            return Err(CodeError {
+                            return Err(Code {
                                 error: PossibleErrors::SyntaxError,
                             });
                         }
 
-                        for identifier in
-                            expression[0..expression.len().checked_sub(2).unwrap()].to_vec()
+                        for identifier in expression[0..expression.len().checked_sub(2).unwrap()]
+                            .iter()
+                            .cloned()
                         {
-                            match identifier {
-                                Token::Identificador(var_name) => {
-                                    self.memory
-                                        .create(var_name, convert_to_type(&var_type).unwrap());
-                                }
-                                _ => {}
+                            if let Token::Identificador(var_name) = identifier {
+                                self.memory
+                                    .create(var_name, convert_to_type(var_type).unwrap());
                             }
                         }
 
                         // dbg!(expression);
                     }
-                    Keyword::None | _ => {}
+                    _ => {}
                 },
                 // If it starts with variable, it must be an assignment
                 Token::Identificador(var_name) => {
                     let assignment = instruction.get(1);
                     if assignment.is_none() {
-                        return Err(CodeError {
+                        return Err(Code {
                             error: PossibleErrors::InvalidInstruction,
                         });
                     }
                     if instruction.len() <= 2 {
-                        return Err(CodeError {
+                        return Err(Code {
                             error: PossibleErrors::IncompleteAssignment,
                         });
                     }

@@ -21,6 +21,8 @@ pub enum Token {
     Numero(f32, bool),
     String(String),
     Boolean(bool),
+
+    #[allow(clippy::upper_case_acronyms)]
     EOL, // ';'
 
     // Identificador es global, tiene que ser transformado a Variable o Instrucción
@@ -74,13 +76,13 @@ pub fn convert_to_keyword(text: String) -> Token {
         }
     }
 
-    return Token::Identificador(text);
+    Token::Identificador(text)
 }
 
 pub fn convert_to_type(token: &Token) -> Option<Type> {
     match token {
-        Token::Tipo(val) => return Some(*val),
-        _ => return None,
+        Token::Tipo(val) => Some(*val),
+        _ => None,
     }
 }
 
@@ -90,21 +92,20 @@ impl Token {
             Token::Numero(num, rounded) => {
                 if rounded {
                     return f32::trunc(num).to_string();
-                } else {
-                    return num.to_string();
                 }
+                num.to_string()
             }
-            Token::String(string) => return string,
-            Token::Boolean(bool) => return bool.to_string(),
-            _ => "".to_string(),
+            Token::String(string) => string,
+            Token::Boolean(bool) => bool.to_string(),
+            _ => String::new(),
         }
     }
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let name = format!("{:?}", self);
-        let split = name.split("(").collect::<Vec<&str>>();
+        let name = format!("{self:?}");
+        let split = name.split('(').collect::<Vec<&str>>();
 
         write!(f, "{}", split.first().unwrap().trim_matches('"'))
         // or, alternatively:
@@ -114,8 +115,8 @@ impl fmt::Display for Token {
 
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let name = format!("{:?}", self);
-        let split = name.split("(").collect::<Vec<&str>>();
+        let name = format!("{self:?}");
+        let split = name.split('(').collect::<Vec<&str>>();
 
         write!(f, "{}", split.first().unwrap().trim_matches('"'))
         // or, alternatively:
@@ -125,8 +126,8 @@ impl fmt::Display for Keyword {
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let name = format!("{:?}", self);
-        let split = name.split("(").collect::<Vec<&str>>();
+        let name = format!("{self:?}");
+        let split = name.split('(').collect::<Vec<&str>>();
 
         write!(f, "{}", split.first().unwrap().trim_matches('"'))
         // or, alternatively:

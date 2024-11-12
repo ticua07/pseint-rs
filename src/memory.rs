@@ -1,7 +1,7 @@
 use std::collections::{hash_map::Entry, HashMap};
 
 use crate::{
-    error::{CodeError, PossibleErrors},
+    error::{Code, PossibleErrors},
     tokens::{Token, Type},
 };
 
@@ -14,18 +14,10 @@ pub struct Memoria {
 impl Memoria {
     pub fn new() -> Memoria {
         let memory = HashMap::new();
-        return Self {
+        Self {
             memory,
             current_scope: 0,
-        };
-    }
-
-    pub fn scope_forward(&mut self) {
-        self.current_scope += 1;
-    }
-
-    pub fn scope_backwards(&mut self) {
-        self.current_scope -= 1;
+        }
     }
 
     pub fn create(&mut self, name: String, tipo: Type) -> Option<()> {
@@ -34,9 +26,9 @@ impl Memoria {
             Entry::Vacant(entry) => {
                 let initial_data = match tipo {
                     // default values straight from PSeInt
-                    Type::Caracter => Token::String("".to_string()),
-                    Type::Entero => Token::Numero(0 as f32, true),
-                    Type::Real => Token::Numero(0 as f32, false),
+                    Type::Caracter => Token::String(String::new()),
+                    Type::Entero => Token::Numero(0.0, true),
+                    Type::Real => Token::Numero(0.0, false),
                     Type::Logico => Token::Boolean(false),
                     Type::None => return None,
                 };
@@ -55,10 +47,10 @@ impl Memoria {
                 if *rounded {
                     return Some(Type::Entero);
                 }
-                return Some(Type::Real);
+                Some(Type::Real)
             }
-            Token::String(_) => return Some(Type::Caracter),
-            Token::Boolean(_) => return Some(Type::Logico),
+            Token::String(_) => Some(Type::Caracter),
+            Token::Boolean(_) => Some(Type::Logico),
             _ => None,
         }
     }
@@ -69,11 +61,11 @@ impl Memoria {
         data
     }
 
-    pub fn set(&mut self, name: String, value: Token) -> Result<(), CodeError> {
+    pub fn set(&mut self, name: String, value: Token) -> Result<(), Code> {
         match self.memory.entry((name, self.current_scope)) {
             Entry::Occupied(mut entry) => {
                 if !(std::mem::discriminant(entry.get()) == std::mem::discriminant(&value)) {
-                    return Err(CodeError {
+                    return Err(Code {
                         error: crate::error::PossibleErrors::WrongType,
                     });
                 }
@@ -81,7 +73,7 @@ impl Memoria {
                 Ok(())
             }
             Entry::Vacant(entry) => {
-                return Err(CodeError {
+                return Err(Code {
                     error: PossibleErrors::VariableNotFound(entry.key().0.clone()),
                 });
             }

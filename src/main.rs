@@ -1,9 +1,9 @@
-use parser::{postfix_stack_evaluator, shunting_yard};
+#![deny(clippy::pedantic)]
 
-use crate::{
-    interpreter::Interpreter,
-    lexer::{find_algorithm, Lexer},
-};
+use clap::Parser;
+use std::path::PathBuf;
+
+use crate::{interpreter::Interpreter, lexer::find_algorithm};
 
 mod error;
 mod file;
@@ -13,13 +13,20 @@ mod memory;
 mod parser;
 mod tokens;
 
+#[derive(Parser, Debug)]
+struct Args {
+    path: PathBuf,
+}
+
 fn main() {
-    let content = file::open_file("./algorithm.psc");
+    let args = Args::parse();
+
+    let content = file::open(args.path);
     let (algo_start, algo_end) = find_algorithm(&content);
     let lines: Vec<&str> = content.lines().collect();
 
     let lines_of_code = lines[1 + algo_start..algo_end].to_vec();
-    let mut interpreter = Interpreter::new(lines_of_code);
+    let mut interpreter = Interpreter::new(&lines_of_code);
     let result = interpreter.run();
     if result.is_err() {
         println!("{}", result.err().unwrap());

@@ -10,6 +10,6 @@ Algoritmo programa1
 
     suma <- -123;
 
-    Escribir "Hola mundo", caracter1;
+    Escribir "Hola mundo ", caracter1, "hola";
     Escribir suma;
 FinAlgoritmo

@@ -14,6 +14,7 @@ pub enum Token {
     MayorA,
     MayorOIgual,
     Suma,
+    SeparadorArgumento,
     Resta,
     Multiplicacion,
     Division,
@@ -76,7 +77,7 @@ pub fn convert_to_keyword(text: String) -> Token {
         }
     }
 
-    Token::Identificador(text)
+    Token::Variable(text)
 }
 
 pub fn convert_to_type(token: &Token) -> Option<Type> {

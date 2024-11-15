@@ -31,7 +31,13 @@ impl Interpreter {
                 Token::Instruccion(instr) => match instr {
                     Keyword::Escribir => {
                         let expression = &instruction[1..instruction.len()];
-                        let postfix = shunting_yard(expression.to_vec(), &self.memory)?;
+
+                        let concatenated_expressions =
+                        expression.iter().map(|f| if f == &Token::SeparadorArgumento { Token::Suma } else {f.clone()} ).collect();
+                        
+
+
+                        let postfix = shunting_yard(concatenated_expressions, &self.memory)?;
                         let result = postfix_stack_evaluator(postfix);
                         if let Some(i) = result {
                             println!("{}", i.get_as_string());
@@ -44,7 +50,7 @@ impl Interpreter {
                     Keyword::Leer => {
                         let expression = &instruction[1..instruction.len()];
                         for identifier in expression.iter().cloned() {
-                            if let Token::Identificador(var_name) = identifier {
+                            if let Token::Variable(var_name) = identifier {
                                 let var_type = self.memory.get_type(var_name.clone()).unwrap();
 
                                 print!("> ");
@@ -132,7 +138,7 @@ impl Interpreter {
                             .iter()
                             .cloned()
                         {
-                            if let Token::Identificador(var_name) = identifier {
+                            if let Token::Variable(var_name) = identifier {
                                 self.memory
                                     .create(var_name, convert_to_type(var_type).unwrap());
                             }
@@ -143,7 +149,7 @@ impl Interpreter {
                     _ => {}
                 },
                 // If it starts with variable, it must be an assignment
-                Token::Identificador(var_name) => {
+                Token::Variable(var_name) => {
                     let assignment = instruction.get(1);
                     if assignment.is_none() {
                         return Err(Code {

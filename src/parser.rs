@@ -12,7 +12,7 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
         match token {
             Token::Numero(..) | Token::String(_) => queue.push(token),
 
-            Token::Identificador(ref var_name) => match memory.get(var_name.clone()) {
+            Token::Variable(ref var_name) => match memory.get(var_name.clone()) {
                 Some(token) => queue.push(token.clone()),
                 None => {
                     return Err(Code {
@@ -65,7 +65,7 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
         };
     }
 
-    while stack.is_empty() {
+    while !stack.is_empty() {
         queue.push(stack.pop().unwrap());
     }
 

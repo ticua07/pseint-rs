@@ -31,11 +31,11 @@ impl Lexer {
         let mut curr_char = initial_char;
         let mut string = String::new();
 
-        while curr_char.is_alphanumeric() {
+        loop {
             string.push(curr_char);
 
             // No more characters, this mean the line of code has reached the end.
-            if chars.peek().is_none() {
+            if chars.peek().is_none() || chars.peek().is_some_and(|f| !f.is_alphanumeric()) {
                 break;
             };
 
@@ -77,6 +77,7 @@ impl Lexer {
                 }
 
                 '+' => tokens.push(Token::Suma),
+                ',' => tokens.push(Token::SeparadorArgumento),
                 '-' => {
                     if tokens.last().is_some() && tokens.last().unwrap() == &Token::Igual {
                         let ch = chars.peek().unwrap().to_owned();

@@ -1,5 +1,8 @@
 use std::io::{self, Write};
 
+use log::{debug, info, trace, warn};
+
+use crate::ast::{build_ast, ASTNode};
 use crate::error::{Code, PossibleErrors};
 use crate::lexer::Lexer;
 use crate::memory::Memoria;
@@ -9,6 +12,10 @@ use crate::tokens::{convert_to_type, Keyword, Token, Type};
 pub struct Interpreter {
     code: Vec<Vec<Token>>,
     memory: Memoria,
+}
+
+fn check_same_type(t1: &Token, t2: &Token) -> bool {
+    std::mem::discriminant(t1) == std::mem::discriminant(t2)
 }
 
 impl Interpreter {
@@ -24,153 +31,93 @@ impl Interpreter {
         Self { code, memory }
     }
 
-    #[allow(clippy::too_many_lines)]
-    pub fn run(&mut self) -> Result<(), Code> {
-        for instruction in self.code.clone() {
-            match instruction.first().unwrap() {
-                Token::Instruccion(instr) => match instr {
-                    Keyword::Escribir => {
-                        let expression = &instruction[1..instruction.len()];
-
-                        let concatenated_expressions =
-                        expression.iter().map(|f| if f == &Token::SeparadorArgumento { Token::Suma } else {f.clone()} ).collect();
-                        
-
-
-                        let postfix = shunting_yard(concatenated_expressions, &self.memory)?;
-                        let result = postfix_stack_evaluator(postfix);
-                        if let Some(i) = result {
-                            println!("{}", i.get_as_string());
-                        } else {
-                            return Err(Code {
-                                error: PossibleErrors::MissingArguments,
-                            });
-                        }
+    pub fn run(&mut self, ast: Vec<ASTNode>) {
+        for statement in ast {
+            match statement {
+                ASTNode::VariableDeclaration { names, var_type } => {
+                    for name in names {
+                        trace!("Create {name}, set to {var_type}");
+                        self.memory.create(name, var_type);
                     }
-                    Keyword::Leer => {
-                        let expression = &instruction[1..instruction.len()];
-                        for identifier in expression.iter().cloned() {
-                            if let Token::Variable(var_name) = identifier {
-                                let var_type = self.memory.get_type(var_name.clone()).unwrap();
-
-                                print!("> ");
-                                io::stdout().flush().unwrap();
-                                let mut buffer = String::new();
-                                io::stdin().read_line(&mut buffer).unwrap();
-
-                                buffer = buffer.trim().to_string();
-
-                                match var_type {
-                                    Type::Caracter => {
-                                        self.memory.set(var_name, Token::String(buffer))?;
-                                    }
-                                    Type::Real => {
-                                        let Ok(parsed) = buffer.parse::<f32>() else {
-                                            return Err(Code {
-                                                error: PossibleErrors::WrongType,
-                                            });
-                                        };
-                                        let value = Token::Numero(parsed, false);
-
-                                        self.memory.set(var_name, value)?;
-                                    }
-                                    Type::Entero => {
-                                        let Ok(parsed) = buffer.parse::<f32>() else {
-                                            return Err(Code {
-                                                error: PossibleErrors::WrongType,
-                                            });
-                                        };
-                                        if parsed.fract() != 0.0 {
-                                            return Err(Code {
-                                                error: PossibleErrors::WrongType,
-                                            });
-                                        }
-
-                                        let value = Token::Numero(parsed, true);
-
-                                        self.memory.set(var_name, value)?;
-                                    }
-                                    Type::Logico => {
-                                        let value = match buffer.to_lowercase().as_str() {
-                                            "verdadero" => true,
-                                            "falso" => false,
-                                            _ => {
-                                                return Err(Code {
-                                                    error: PossibleErrors::WrongType,
-                                                });
-                                            }
-                                        };
-                                        self.memory.set(var_name, Token::Boolean(value))?;
-                                    }
-
-                                    Type::None => {
-                                        return Err(Code {
-                                            error: PossibleErrors::SyntaxError,
-                                        })
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Keyword::Definir => {
-                        let expression = instruction[1..instruction.len()].to_vec();
-                        let var_type = expression.last().unwrap();
-                        let identifier_como =
-                            expression.get(expression.len().checked_sub(2).unwrap());
-
-                        // Could probably remove the Type::None, as it is not used anywhere
-                        if !(std::mem::discriminant(var_type)
-                            == std::mem::discriminant(&Token::Tipo(Type::None)))
-                            || *var_type == Token::Tipo(Type::None)
-                        {
-                            return Err(Code {
-                                error: PossibleErrors::MissingTypeOrUnvalidType,
-                            });
-                        }
-
-                        if identifier_como.is_none() {
-                            return Err(Code {
-                                error: PossibleErrors::SyntaxError,
-                            });
-                        }
-
-                        for identifier in expression[0..expression.len().checked_sub(2).unwrap()]
-                            .iter()
-                            .cloned()
-                        {
-                            if let Token::Variable(var_name) = identifier {
-                                self.memory
-                                    .create(var_name, convert_to_type(var_type).unwrap());
-                            }
-                        }
-
-                        // dbg!(expression);
-                    }
-                    _ => {}
-                },
-                // If it starts with variable, it must be an assignment
-                Token::Variable(var_name) => {
-                    let assignment = instruction.get(1);
-                    if assignment.is_none() {
-                        return Err(Code {
-                            error: PossibleErrors::InvalidInstruction,
-                        });
-                    }
-                    if instruction.len() <= 2 {
-                        return Err(Code {
-                            error: PossibleErrors::IncompleteAssignment,
-                        });
-                    }
-
-                    let expression = instruction[2..instruction.len()].to_vec();
-                    let postfix = shunting_yard(expression, &self.memory)?;
-                    let result = postfix_stack_evaluator(postfix);
-                    self.memory.set(var_name.clone(), result.unwrap())?;
                 }
-                _ => {}
+                ASTNode::Assignment { name, expression } => {
+                    // expression is a vec of tokens, if the length is more than 1 then it's
+                    // probably a mathematical expression, otherwise it's just 1 token
+                    // like falso for example, which just set the variable to false in one token
+
+                    // it technically is more expensive to retrieve this value first
+                    // then check for shunting_yard, but I can refactor it later!
+                    let mut result: Token = expression.get(0).unwrap().clone();
+
+                    if let Ok(postfix) = shunting_yard(expression, &self.memory) {
+                        // result = postfix_stack_evaluator().unwrap();
+                        result = postfix_stack_evaluator(postfix).unwrap();
+                    } else {
+                        warn!("shunting_yard couldn't be completed")
+                    }
+
+                    trace!("Set {} to {}", name, result);
+                    self.memory.set(name, result).unwrap();
+
+                    // debug!("{:?}", self.memory);
+                }
+                ASTNode::WriteStatement { expressions } => {
+                    let mut result: Token = expressions.get(0).unwrap().clone();
+
+                    if let Ok(postfix) = shunting_yard(expressions, &self.memory) {
+                        result = postfix_stack_evaluator(postfix).unwrap();
+                    } else {
+                        warn!("shunting_yard couldn't be completed")
+                    }
+
+                    println!("{}", result.get_as_string());
+                }
+                ASTNode::IfStatement { condition, code } => {
+                    trace!("{:?}, {:?}", condition, code);
+
+                    let mut result: Token = condition.get(0).unwrap().clone();
+
+                    if let Ok(postfix) = shunting_yard(condition, &self.memory) {
+                        // result = postfix_stack_evaluator().unwrap();
+
+                        if let Some(res) = postfix_stack_evaluator(postfix) {
+                            result = res;
+                        } else {
+                            warn!("postfix couldn't be completed")
+                        }
+                    } else {
+                        warn!("shunting_yard couldn't be completed")
+                    }
+
+                    // token is variable
+                    // can only be logico type
+                    let conditional = match result {
+                        Token::Variable(variable) => {
+                            if let Some(value) = self.memory.get(variable) {
+                                match value.clone().get_as_string().as_str() {
+                                    "true" => true,
+                                    "false" => false,
+                                    _ => false,
+                                }
+                            } else {
+                                false // variable not found
+                            }
+                        }
+                        Token::Boolean(b) => b,
+                        _ => false,
+                    };
+
+                    debug!("{}", conditional);
+
+                    if conditional {
+                        let if_ast = build_ast(code).unwrap();
+                        self.run(if_ast);
+                    }
+                }
+                _ => {
+                    warn!("unhandled statement")
+                }
             }
         }
-
-        Ok(())
     }
 }

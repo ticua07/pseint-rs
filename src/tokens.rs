@@ -45,10 +45,14 @@ pub enum Keyword {
 
     Algoritmo,
     FinAlgoritmo,
+    Entonces,
     Escribir,
     Leer,
     Como,
     Definir,
+
+    Si,
+    FinSi,
 }
 
 #[derive(Default, Debug, EnumIter, PartialEq, Clone, Copy)]
@@ -65,14 +69,22 @@ pub enum Type {
 
 /// Converts to keyword if it is one, or returns a variable
 pub fn convert_to_keyword(text: String) -> Token {
+    let lower = text.to_lowercase();
+
+    if lower == "verdadero" {
+        return Token::Boolean(true);
+    } else if lower == "falso" {
+        return Token::Boolean(false);
+    }
+
     for keyword in Keyword::iter() {
-        if text.to_lowercase() == keyword.to_string().to_lowercase() {
+        if lower == keyword.to_string().to_lowercase() {
             return Token::Instruccion(keyword);
         }
     }
 
     for var_type in Type::iter() {
-        if text.to_lowercase() == var_type.to_string().to_lowercase() {
+        if lower == var_type.to_string().to_lowercase() {
             return Token::Tipo(var_type);
         }
     }

@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 strum = { version = "0.26", features = ["derive"] }
 clap = { version = "4.5.20", features = ["derive"] }
+log = "0.4.27"
+pretty_env_logger = "0.4"

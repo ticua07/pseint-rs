@@ -1,3 +1,5 @@
+use log::error;
+
 use crate::{
     error::{Code, PossibleErrors},
     memory::Memoria,
@@ -57,7 +59,7 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
             }
 
             _ => {
-                println!("token {token:?} shouldn't be here");
+                error!("token {token:?} shouldn't be here");
                 return Err(Code {
                     error: PossibleErrors::InvalidInstruction,
                 });
@@ -155,7 +157,7 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
         match token {
             Token::Numero(..) | Token::String(_) => stack.push(token),
             operator => {
-                let right = stack.pop().unwrap();
+                let right = stack.pop()?;
 
                 let left = stack.pop().unwrap_or(Token::Numero(0f32, false));
 
@@ -166,12 +168,12 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
                 };
                 let result = node.calculate();
                 result.as_ref()?;
-                stack.push(result.unwrap());
+                stack.push(result?);
             }
         }
     }
 
-    let result = stack.pop().unwrap();
+    let result = stack.pop()?;
     Some(result)
 }
 

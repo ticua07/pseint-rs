@@ -1,4 +1,5 @@
 use std::collections::{hash_map::Entry, HashMap};
+use std::fmt;
 
 use crate::{
     error::{Code, PossibleErrors},
@@ -78,5 +79,14 @@ impl Memoria {
                 });
             }
         }
+    }
+}
+
+impl fmt::Debug for Memoria {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for ((name, scope), token) in &self.memory {
+            writeln!(f, "{} -> {:?}", name, token)?;
+        }
+        Ok(())
     }
 }

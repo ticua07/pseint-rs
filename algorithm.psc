@@ -6,10 +6,14 @@ Algoritmo programa1
 
     caracter1 <- "Ticua07";
 
-    // booleano <- false;
+    booleano <- falso;
 
     suma <- -123;
 
-    Escribir "Hola mundo ", caracter1, "hola";
+    Escribir "Hola mundo ", caracter1, " hola";
     Escribir suma;
+
+    Si (booleano) Entonces 
+		Escribir "Hola";
+	FinSi
 FinAlgoritmo

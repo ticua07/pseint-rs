@@ -159,6 +159,7 @@ impl CalcNode {
                 match self.operator {
                     Token::Suma => Some(Token::String(left + &right)),
                     Token::Comparacion => Some(Token::Boolean(left == right)),
+                    Token::Diferente => Some(Token::Boolean(left != right)),
                     _ => None,
                 }
             }

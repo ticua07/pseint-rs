@@ -5,19 +5,14 @@ Algoritmo programa1
 	Definir suma Como Entero;
 
     caracter1 <- "Ticua07";
-
     booleano <- falso;
-
     suma <- 50;
-
-    Escribir "Hola mundo ", caracter1, " hola";
-    Escribir suma;
 
     Si (booleano) Entonces 
 		Escribir "Hola";
 	FinSi
 
-    si (suma > 30 y suma < 100) Entonces
-        Escribir "Suma es > 30 y < 100";
+    si (caracter1 <> "Ticua") Entonces
+        Escribir "Caracter1 no es Ticua, sino que es ", caracter1;
     FinSi
 FinAlgoritmo

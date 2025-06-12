@@ -7,22 +7,17 @@ use crate::{
 };
 
 pub struct Memoria {
-    current_scope: u8,
-    //                name  scope
-    memory: HashMap<(String, u8), Token>,
+    memory: HashMap<String, Token>,
 }
 
 impl Memoria {
     pub fn new() -> Memoria {
         let memory = HashMap::new();
-        Self {
-            memory,
-            current_scope: 0,
-        }
+        Self { memory }
     }
 
     pub fn create(&mut self, name: String, tipo: Type) -> Option<()> {
-        match self.memory.entry((name, self.current_scope)) {
+        match self.memory.entry(name) {
             Entry::Occupied(_) => None,
             Entry::Vacant(entry) => {
                 let initial_data = match tipo {
@@ -41,7 +36,7 @@ impl Memoria {
     }
 
     pub fn get_type(&self, name: String) -> Option<Type> {
-        let data = self.memory.get(&(name, self.current_scope))?;
+        let data = self.memory.get(&name)?;
 
         match data {
             Token::Numero(_, rounded) => {
@@ -57,13 +52,13 @@ impl Memoria {
     }
 
     pub fn get(&self, name: String) -> Option<&Token> {
-        let data = self.memory.get(&(name, self.current_scope));
+        let data = self.memory.get(&name);
 
         data
     }
 
     pub fn set(&mut self, name: String, value: Token) -> Result<(), Code> {
-        match self.memory.entry((name, self.current_scope)) {
+        match self.memory.entry(name) {
             Entry::Occupied(mut entry) => {
                 if !(std::mem::discriminant(entry.get()) == std::mem::discriminant(&value)) {
                     return Err(Code {
@@ -75,7 +70,7 @@ impl Memoria {
             }
             Entry::Vacant(entry) => {
                 return Err(Code {
-                    error: PossibleErrors::VariableNotFound(entry.key().0.clone()),
+                    error: PossibleErrors::VariableNotFound(entry.key().clone()),
                 });
             }
         }
@@ -84,7 +79,7 @@ impl Memoria {
 
 impl fmt::Debug for Memoria {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for ((name, scope), token) in &self.memory {
+        for (name, token) in &self.memory {
             writeln!(f, "{} -> {:?}", name, token)?;
         }
         Ok(())

@@ -102,6 +102,9 @@ impl Lexer {
                     } else if next_char == &'=' {
                         tokens.push(Token::MenorOIgual);
                         chars.next();
+                    } else if next_char == &'>' {
+                        tokens.push(Token::Diferente);
+                        chars.next();
                     } else {
                         tokens.push(Token::MenorA);
                     }
@@ -120,6 +123,12 @@ impl Lexer {
 
                 '(' => tokens.push(Token::AbrirParentesis),
                 ')' => tokens.push(Token::CerrarParentesis),
+
+                'Y' => tokens.push(Token::Y),
+                'y' => tokens.push(Token::Y),
+
+                'O' => tokens.push(Token::O),
+                'o' => tokens.push(Token::O),
 
                 '\"' => {
                     let token = Lexer::parse_string('\"', &mut chars);

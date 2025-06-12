@@ -6,7 +6,10 @@ use strum::{EnumIter, IntoEnumIterator};
 pub enum Token {
     None,
 
+    Y,
+    O,
     Igual, // = y <-
+    Diferente,
     Comparacion,
 
     MenorA,

@@ -8,7 +8,7 @@ Algoritmo programa1
 
     booleano <- falso;
 
-    suma <- -123;
+    suma <- 50;
 
     Escribir "Hola mundo ", caracter1, " hola";
     Escribir suma;
@@ -16,4 +16,8 @@ Algoritmo programa1
     Si (booleano) Entonces 
 		Escribir "Hola";
 	FinSi
+
+    si (suma > 30 y suma < 100) Entonces
+        Escribir "Suma es > 30 y < 100";
+    FinSi
 FinAlgoritmo

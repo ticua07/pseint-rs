@@ -6,13 +6,30 @@ use crate::{
     tokens::Token,
 };
 
+fn precedence(token: &Token) -> u8 {
+    match token {
+        Token::O => 1,
+        Token::Y => 2,
+        Token::Comparacion
+        | Token::MayorA
+        | Token::MayorOIgual
+        | Token::MenorA
+        | Token::MenorOIgual
+        | Token::Diferente
+        | Token::Igual => 3,
+        Token::Suma | Token::Resta => 4,
+        Token::Multiplicacion | Token::Division => 5,
+        _ => 0,
+    }
+}
+
 pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Token>, Code> {
     let mut stack: Vec<Token> = Vec::new();
     let mut queue: Vec<Token> = Vec::new();
 
     for token in expression {
         match token {
-            Token::Numero(..) | Token::String(_) => queue.push(token),
+            Token::Numero(..) | Token::String(_) | Token::Boolean(_) => queue.push(token),
 
             Token::Variable(ref var_name) => match memory.get(var_name.clone()) {
                 Some(token) => queue.push(token.clone()),
@@ -24,28 +41,25 @@ pub fn shunting_yard(expression: Vec<Token>, memory: &Memoria) -> Result<Vec<Tok
             },
 
             Token::AbrirParentesis | Token::Comparacion => stack.push(token),
-            Token::Suma | Token::Resta => {
-                // Suma y Resta tienen mas precedencia, entonces se reemplazan por los simbolos
-                // de menor precedencia siendo la multiplicación y división
-
-                // Esto se hace para que no ocurra sumas o restas antes de una división o multiplicación
-                let last_item = stack.last().unwrap_or(&Token::None);
-
-                if *last_item == Token::Multiplicacion || *last_item == Token::Division {
-                    let last_item = stack.pop().unwrap();
-                    queue.push(last_item);
-                    stack.push(token);
-                } else {
-                    stack.push(token);
-                }
-            }
-
-            Token::Multiplicacion
+            Token::Suma
+            | Token::Resta
+            | Token::Multiplicacion
             | Token::Division
             | Token::MayorA
             | Token::MayorOIgual
             | Token::MenorA
-            | Token::MenorOIgual => {
+            | Token::MenorOIgual
+            | Token::Igual
+            | Token::Diferente
+            | Token::Y
+            | Token::O => {
+                while let Some(op) = stack.last() {
+                    if precedence(op) >= precedence(&token) {
+                        queue.push(stack.pop().unwrap());
+                    } else {
+                        break;
+                    }
+                }
                 stack.push(token);
             }
 
@@ -132,6 +146,9 @@ impl CalcNode {
                     Token::MayorOIgual => Some(Token::Boolean(left >= right)),
                     Token::MenorA => Some(Token::Boolean(left < right)),
                     Token::MenorOIgual => Some(Token::Boolean(left <= right)),
+                    Token::Diferente => Some(Token::Boolean(left != right)),
+                    Token::Igual => Some(Token::Boolean(left == right)),
+
                     _ => None,
                 }
             }
@@ -145,6 +162,19 @@ impl CalcNode {
                     _ => None,
                 }
             }
+            Token::Boolean(left) => {
+                if let Token::Boolean(right) = self.right {
+                    match self.operator {
+                        Token::Y => Some(Token::Boolean(left && right)),
+                        Token::O => Some(Token::Boolean(left || right)),
+                        Token::Igual => Some(Token::Boolean(left == right)),
+                        Token::Diferente => Some(Token::Boolean(left != right)),
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
+            }
             _ => None,
         }
     }
@@ -155,7 +185,7 @@ pub fn postfix_stack_evaluator(tokens: Vec<Token>) -> Option<Token> {
 
     for token in tokens {
         match token {
-            Token::Numero(..) | Token::String(_) => stack.push(token),
+            Token::Numero(..) | Token::String(_) | Token::Boolean(_) => stack.push(token),
             operator => {
                 let right = stack.pop()?;
 
@@ -228,6 +258,18 @@ mod parser_tests {
         let result = postfix_stack_evaluator(postfix);
 
         assert_eq!(result, Some(Token::String("hola mundo".to_string())));
+    }
+
+    #[test]
+    fn postfix_boolean() {
+        let expression = "VERDADERO Y VERDADERO";
+        let tokens = Lexer::lex(expression);
+        let memory = Memoria::new();
+
+        let postfix = shunting_yard(tokens, &memory).unwrap();
+        let result = postfix_stack_evaluator(postfix);
+
+        assert_eq!(result, Some(Token::Boolean(true)))
     }
 
     #[test]

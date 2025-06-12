@@ -75,11 +75,13 @@ impl Interpreter {
                 ASTNode::IfStatement { condition, code } => {
                     trace!("{:?}, {:?}", condition, code);
 
-                    let mut result: Token = condition.get(0).unwrap().clone();
+                    let mut result: Token = Token::None;
+
+                    if condition.len() == 1 {
+                        result = condition.get(0).unwrap().clone();
+                    }
 
                     if let Ok(postfix) = shunting_yard(condition, &self.memory) {
-                        // result = postfix_stack_evaluator().unwrap();
-
                         if let Some(res) = postfix_stack_evaluator(postfix) {
                             result = res;
                         } else {
